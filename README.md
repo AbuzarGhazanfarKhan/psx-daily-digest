@@ -21,11 +21,28 @@ To change the time, edit `.github/workflows/psx_daily.yml` — the comment sits 
 
 Edit `watchlist.txt` (one symbol per line). The next run will report those names in simple language.
 
-## Telegram
+## Telegram — two people, two bots
 
-Repo **Settings → Secrets and variables → Actions**:
+Same GitHub Action, two BotFather bots.
+
+**You (learner)** — secrets you already have:
 
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
 
-Then **Actions → Daily PSX digest → Run workflow**.
+**Father (investor)** — new bot on his phone, then two more secrets:
+
+- `TELEGRAM_BOT_TOKEN_INVESTOR`
+- `TELEGRAM_CHAT_ID_INVESTOR`
+
+He opens **his** bot, sends `/start` then `hi`, then `getUpdates` on **his** token to get chat id.
+
+Each person gets:
+
+1. A **short English** ping (numbers + one-line bias)
+2. **Detailed Roman Urdu** (Urdu speech, English letters). Words like KSE-100, 200-day average, volume, breadth stay in English.
+
+Learner note = study, do not buy yet.  
+Investor note = tape, stance, quality screen — still not financial advice.
+
+Files: `reports/latest.md` (you) and `reports/latest-investor.md` (him).

@@ -1308,10 +1308,198 @@ def strip_md(text: str) -> str:
     return text.replace("**", "").replace("`", "")
 
 
-def post_telegram(parts: list[str]) -> None:
-    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+def _tape(d: Digest) -> dict:
+    last_close = d.index.last[1]
+    vs_200 = None if d.ma200 is None else pct(last_close - d.ma200, d.ma200)
+    up = sum(1 for q in d.quotes if q.pct > 0)
+    down = sum(1 for q in d.quotes if q.pct < 0)
+    kse_quotes = [q for q in (d.kse100 or [q for q in d.quotes if "KSE100" in q.listed]) if not q.symbol.endswith("XD")]
+    strong = strong_names(d.histories)[:8]
+    return {
+        "last": last_close,
+        "vs_200": vs_200,
+        "up": up,
+        "down": down,
+        "gainers": top(kse_quotes, key=lambda q: q.pct, n=5),
+        "losers": top(kse_quotes, key=lambda q: q.pct, reverse=False, n=5),
+        "strong": strong,
+        "active": top(kse_quotes, key=lambda q: q.volume, n=5),
+        "hot_sectors": [s for s in top(d.sectors, key=lambda s: s.advance - s.decline, n=6) if s.advance > s.decline][:5],
+        "cold_sectors": top(d.sectors, key=lambda s: s.advance - s.decline, reverse=False, n=5),
+    }
+
+
+def learner_english_short(d: Digest) -> str:
+    t = _tape(d)
+    vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
+    return (
+        f"LEARNER (short EN)  {d.generated}\n"
+        f"KSE-100 {d.day_label} {fmt_pct(d.day_pct)} at {fmt(t['last'])}. "
+        f"vs 200-day average: {vs}. Mood {d.sentiment_label} ({d.sentiment_score}/100).\n"
+        f"Do not buy today. You are in learning weeks. Detail Roman Urdu mein next messages mein hai.\n"
+        f"Not financial advice."
+    )
+
+
+def investor_english_short(d: Digest) -> str:
+    t = _tape(d)
+    vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
+    if d.regime.startswith("DOWN") or d.sentiment_score < 32:
+        bias = "Bias: defensive. No chase, no lump-sum."
+    elif "below" in d.regime.lower() or d.sentiment_score < 45:
+        bias = "Bias: wait / staged adds only in quality KSE-100."
+    elif d.regime.startswith("UP"):
+        bias = "Bias: trend up, still do not chase extended names."
+    else:
+        bias = "Bias: mixed tape. Keep size small."
+    return (
+        f"INVESTOR (short EN)  {d.generated}\n"
+        f"KSE-100 {d.day_label} {fmt_pct(d.day_pct)} | {fmt(t['last'])} | vs 200-day {vs}\n"
+        f"Breadth {t['up']} up / {t['down']} down | sentiment {d.sentiment_score}/100 | {d.regime}\n"
+        f"{bias}\n"
+        f"Full detail Roman Urdu mein next messages. Not financial advice."
+    )
+
+
+def investor_ru_stance(d: Digest) -> list[str]:
+    if d.regime.startswith("DOWN") or d.sentiment_score < 32:
+        return [
+            "Aaj ka bias defensive hai. Dip blindly mat khareedo.",
+            "Lump-sum skip. Agar add karna hai to size chhota, aur sirf us name par jiska 3-year thesis pehle se likha ho.",
+            "Limit-up aur low-volume spikes speculation hain — portfolio ke liye nahi.",
+        ]
+    if "below" in d.regime.lower() or d.sentiment_score < 45:
+        return [
+            "KSE-100 200-day average ke neeche hai, isliye bull case abhi prove nahi hua.",
+            "Default: wait. Staged add sirf quality KSE-100 names mein, circuit-hitter mein nahi.",
+            "Jo name 50-day average se bohat upar bhaag chuka ho, usko chase mat karo.",
+        ]
+    if d.regime.startswith("UP"):
+        return [
+            "Long trend supportive hai, lekin green day ka matlab ye nahi ke har cheez buy karo.",
+            "Quality par ordinary red days pe add soch sakte ho. Extended names FOMO hain.",
+            "Ek hi stock agar portfolio ka bohat bara hissa ban jaye to rebalance socho.",
+        ]
+    return [
+        "Tape mixed hai. Hero trade se parhez.",
+        "200-day average ke around whipsaw common hai — size chhota rakho.",
+        "Dry powder rakho jab tak 50-day aur price dono 200-day ke upar na hon.",
+    ]
+
+
+def learner_ru_parts(d: Digest) -> list[str]:
+    t = _tape(d)
+    vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
+    closed = f"Note: {d.closed_note}\n\n" if d.closed_note else ""
+    watch = "\n".join(
+        f"• {h.symbol}: day {fmt_pct(h.day_pct)}, 1m {fmt_pct(h.r1m)}, 6m {fmt_pct(h.r6m)}, "
+        f"1y {fmt_pct(h.r1y)}, vs 200-day {fmt_pct(h.vs_200)}"
+        for h in d.watchlist
+    ) or "Watchlist load nahi hui."
+    p1 = (
+        f"LEARNER — Roman Urdu (detail)  {d.generated}\n"
+        f"Yeh financial advice nahi. Loss ho sakta hai.\n"
+        f"{closed}"
+        f"Aaj KSE-100 {d.day_label} raha, change {fmt_pct(d.day_pct)}. Level {fmt(t['last'])}.\n"
+        f"200-day average se farq: {vs}. {d.why}\n"
+        f"Breadth: {t['up']} stocks up, {t['down']} down. Agar zyada tar stocks down hon to sirf index dekh ke khushi/gham nahi karna.\n"
+        f"Sentiment {d.sentiment_label} ({d.sentiment_score}/100).\n\n"
+        f"Aap ne abhi buy start nahi kiya — theek hai. Aaj order mat do. Broker mein cash rehne do.\n"
+        f"Har din teen cheezein dekho: (1) market up ya down (2) 200-day average ke upar ya neeche "
+        f"(3) zyada stocks saath move kiye ya nahi.\n\n"
+        f"Aaj ka lesson: {d.lesson}"
+    )
+    p2 = "Watchlist (sirf study, buy list nahi):\n" + watch
+    p2 += "\n\nKya change hua last report se:\n" + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
+    p3 = "KSE-100 aaj:\nUp: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["gainers"])
+    p3 += "\nDown: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["losers"])
+    p3 += "\n\nNews (headline skim):\n"
+    for item in d.headlines[:6]:
+        mark = {"positive": "+", "negative": "-", "neutral": "·"}[item.tone]
+        p3 += f"{mark} {item.title}\n"
+    p3 += (
+        "\n+10% wale chhote names KSE-100 ke bahar aksar trap hote hain. Unhe ignore karo.\n"
+        "Tables GitHub pe reports/latest.md mein hain."
+    )
+    return [p1, p2, p3]
+
+
+def investor_ru_parts(d: Digest) -> list[str]:
+    t = _tape(d)
+    vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
+    closed = f"Note: {d.closed_note}\n\n" if d.closed_note else ""
+    stance = "\n".join(f"• {line}" for line in investor_ru_stance(d))
+    strong = t["strong"]
+    strong_txt = "\n".join(
+        f"• {h.symbol}  day {fmt_pct(h.day_pct)}  1m {fmt_pct(h.r1m)}  6m {fmt_pct(h.r6m)}  "
+        f"1y {fmt_pct(h.r1y)}  vs 200-day {fmt_pct(h.vs_200)}  vol {h.volume:,.0f}"
+        for h in strong
+    ) or "Filter se koi name nahi guzra (200-day ke upar + sane 6m/1y + liquidity)."
+    if abs(d.day_pct) >= 1.5:
+        wide = f"\nWide day ({fmt_pct(d.day_pct)}). Intraday emotion ko overnight rakhna behtar hai."
+    else:
+        wide = ""
+    p1 = (
+        f"INVESTOR — Roman Urdu (detail)  {d.generated}\n"
+        f"Yeh financial advice nahi. Capital at risk.\n"
+        f"{closed}"
+        f"Tape: KSE-100 {d.day_label} {fmt_pct(d.day_pct)}, level {fmt(t['last'])}, "
+        f"vs 200-day average {vs}. 5-session {fmt_pct(d.five_pct)}.\n"
+        f"Regime: {d.regime}. Sentiment {d.sentiment_score}/100 ({d.sentiment_label}).\n"
+        f"Breadth {t['up']} / {t['down']} (up/down). "
+        f"Agar decliners heavy hon to index bounce sirf short-covering ho sakta hai.\n\n"
+        f"Stance:\n{stance}{wide}"
+    )
+    p2 = "Last report se change:\n" + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
+    p2 += (
+        "\n\nQuality screen (KSE-100, 200-day ke upar, 6m aur 1y positive, "
+        "1y rocket exclude, volume/mcap filter):\n"
+        + strong_txt
+    )
+    p3 = "KSE-100 movers\nGainers: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["gainers"])
+    p3 += "\nLosers: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["losers"])
+    p3 += "\nVolume leaders: " + ", ".join(f"{q.symbol}" for q in t["active"])
+    if t["hot_sectors"]:
+        p3 += "\nRelative firm sectors: " + ", ".join(s.name for s in t["hot_sectors"])
+    if t["cold_sectors"]:
+        p3 += "\nSoft sectors: " + ", ".join(s.name for s in t["cold_sectors"])
+    p3 += "\n\nNews:\n"
+    for item in d.headlines[:7]:
+        mark = {"positive": "+", "negative": "-", "neutral": "·"}[item.tone]
+        p3 += f"{mark} {item.title}\n"
+    p3 += "\nTables: reports/latest-investor.md"
+    return [p1, p2, p3]
+
+
+def learner_telegram_bundle(d: Digest) -> list[str]:
+    return [learner_english_short(d), *learner_ru_parts(d)]
+
+
+def investor_telegram_bundle(d: Digest) -> list[str]:
+    return [investor_english_short(d), *investor_ru_parts(d)]
+
+
+def ru_learner_markdown(d: Digest) -> str:
+    return "\n\n".join(["## Roman Urdu (detail)", *learner_ru_parts(d)])
+
+
+def ru_investor_markdown(d: Digest) -> str:
+    t = _tape(d)
+    stance = "\n".join(f"- {line}" for line in investor_ru_stance(d))
+    body = "\n\n".join(investor_ru_parts(d))
+    return (
+        f"# Investor note — {d.index.last[0].isoformat()}\n\n"
+        f"**Short EN:** KSE-100 {d.day_label} {fmt_pct(d.day_pct)}, sentiment {d.sentiment_score}/100, {d.regime}. "
+        f"Not financial advice.\n\n"
+        f"## Stance\n{stance}\n\n"
+        f"## Roman Urdu (detail)\n\n{body}\n"
+    )
+
+
+def post_telegram(parts: list[str], token: str, chat_id: str, label: str) -> None:
+    token, chat_id = token.strip(), chat_id.strip()
     if not token or not chat_id:
+        print(f"Telegram {label}: skipped (missing token or chat id)", file=sys.stderr)
         return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     for i, text in enumerate(parts):
@@ -1331,6 +1519,7 @@ def post_telegram(parts: list[str]) -> None:
             resp.read()
         if i < len(parts) - 1:
             time.sleep(0.4)
+    print(f"Telegram {label}: sent {len(parts)} messages", file=sys.stderr)
 
 
 def post_webhook(text: str) -> None:
@@ -1353,10 +1542,22 @@ def write_reports(markdown: str, digest: Digest | None = None) -> Path:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     stamped = REPORTS_DIR / f"{date.today().isoformat()}.md"
     latest = REPORTS_DIR / "latest.md"
-    stamped.write_text(markdown, encoding="utf-8")
-    latest.write_text(markdown, encoding="utf-8")
+    learner = markdown
+    investor = markdown
     if digest is not None:
+        learner = (
+            learner_english_short(digest)
+            + "\n\n"
+            + ru_learner_markdown(digest)
+            + "\n\n---\n\n"
+            + markdown
+        )
+        investor = ru_investor_markdown(digest)
         save_snapshot(digest)
+    stamped.write_text(learner, encoding="utf-8")
+    latest.write_text(learner, encoding="utf-8")
+    (REPORTS_DIR / "latest-investor.md").write_text(investor, encoding="utf-8")
+    (REPORTS_DIR / f"{date.today().isoformat()}-investor.md").write_text(investor, encoding="utf-8")
     return stamped
 
 
@@ -1381,9 +1582,23 @@ def main() -> int:
     path = write_reports(report, digest)
     append_github_summary(report)
     try:
-        post_telegram(build_telegram_parts(digest))
+        post_telegram(
+            learner_telegram_bundle(digest),
+            os.environ.get("TELEGRAM_BOT_TOKEN", ""),
+            os.environ.get("TELEGRAM_CHAT_ID", ""),
+            "learner",
+        )
     except Exception as exc:  # noqa: BLE001
-        print(f"Telegram skipped: {exc}", file=sys.stderr)
+        print(f"Telegram learner skipped: {exc}", file=sys.stderr)
+    try:
+        post_telegram(
+            investor_telegram_bundle(digest),
+            os.environ.get("TELEGRAM_BOT_TOKEN_INVESTOR", ""),
+            os.environ.get("TELEGRAM_CHAT_ID_INVESTOR", ""),
+            "investor",
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"Telegram investor skipped: {exc}", file=sys.stderr)
     try:
         post_webhook(report)
     except Exception as exc:  # noqa: BLE001

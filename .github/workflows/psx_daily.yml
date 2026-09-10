@@ -28,6 +28,8 @@ jobs:
           DIGEST_WEBHOOK_URL: ${{ secrets.DIGEST_WEBHOOK_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN_INVESTOR: ${{ secrets.TELEGRAM_BOT_TOKEN_INVESTOR }}
+          TELEGRAM_CHAT_ID_INVESTOR: ${{ secrets.TELEGRAM_CHAT_ID_INVESTOR }}
         run: python psx_analyzer.py
 
       - name: Commit report
