@@ -1329,15 +1329,55 @@ def _tape(d: Digest) -> dict:
     }
 
 
+def ru_vs_200(vs: float | None) -> str:
+    if vs is None:
+        return "200-day average ka data available nahi"
+    if vs >= 0:
+        return (
+            f"KSE-100 is waqt 200-day average se {fmt_pct(vs)} UPAR hai. "
+            "Matlab last ~200 trading days ki average se price oonchi hai, jo long uptrend ki taraf ishara hai."
+        )
+    return (
+        f"KSE-100 is waqt 200-day average se {abs(vs):.2f}% NEECHE hai. "
+        "Matlab last ~200 trading days ki average se price neeche hai, is liye long uptrend prove nahi hua."
+    )
+
+
+def ru_lesson(d: Digest) -> str:
+    if abs(d.day_pct) >= 1.5:
+        return (
+            f"Aaj ka move {fmt_pct(d.day_pct)} hai, jo ehsas mein bohat bara lagta hai. "
+            "Long-term ke liye yeh sirf ek trading day hai. Aise din headlines bhi tez ho jati hain; "
+            "unhe mood samajhein, buy signal nahi."
+        )
+    if d.ma200 is not None and d.index.last[1] < d.ma200:
+        return (
+            "Jab price 200-day average ke neeche ho, market ko wapas uptrend ke liye "
+            "pehle yeh line cross karni padti hai aur uske upar tikna padta hai. Us se pehle wait valid hai."
+        )
+    t = _tape(d)
+    if t["down"] > max(t["up"], 1) * 3:
+        return (
+            "Aaj breadth weak thi: index ek number hai, lekin zyada stocks down the. "
+            "Is ka matlab pressure sirf ek-do bari companies tak mahdood nahi tha."
+        )
+    return (
+        "Roz yeh teen sawal karein: market up hai ya down? 200-day average ke upar hai ya neeche? "
+        "Headlines hopeful hain ya worried? Jawab likh lena hi learning hai."
+    )
+
+
 def learner_english_short(d: Digest) -> str:
     t = _tape(d)
     vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
     return (
-        f"LEARNER (short EN)  {d.generated}\n"
-        f"KSE-100 {d.day_label} {fmt_pct(d.day_pct)} at {fmt(t['last'])}. "
-        f"vs 200-day average: {vs}. Mood {d.sentiment_label} ({d.sentiment_score}/100).\n"
-        f"Do not buy today. You are in learning weeks. Detail Roman Urdu mein next messages mein hai.\n"
-        f"Not financial advice."
+        f"LEARNER — English summary  {d.generated}\n"
+        f"KSE-100 (Pakistan's 100 larger listed companies): {d.day_label} {fmt_pct(d.day_pct)} at {fmt(t['last'])}.\n"
+        f"Versus 200-day average (slow trend line of ~200 sessions): {vs}. "
+        f"Sentiment {d.sentiment_label} ({d.sentiment_score}/100).\n"
+        f"Action: do not place a buy order. You are in a learning period. "
+        f"The next messages explain every term in Roman Urdu.\n"
+        f"This is not financial advice."
     )
 
 
@@ -1345,129 +1385,177 @@ def investor_english_short(d: Digest) -> str:
     t = _tape(d)
     vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
     if d.regime.startswith("DOWN") or d.sentiment_score < 32:
-        bias = "Bias: defensive. No chase, no lump-sum."
+        bias = "Stance: defensive. Avoid chase and lump-sum deployment."
     elif "below" in d.regime.lower() or d.sentiment_score < 45:
-        bias = "Bias: wait / staged adds only in quality KSE-100."
+        bias = "Stance: wait. If adding, use small staged size in liquid KSE-100 names only."
     elif d.regime.startswith("UP"):
-        bias = "Bias: trend up, still do not chase extended names."
+        bias = "Stance: long trend supportive; do not chase names extended above the 50-day average."
     else:
-        bias = "Bias: mixed tape. Keep size small."
+        bias = "Stance: mixed tape. Keep position size conservative."
     return (
-        f"INVESTOR (short EN)  {d.generated}\n"
-        f"KSE-100 {d.day_label} {fmt_pct(d.day_pct)} | {fmt(t['last'])} | vs 200-day {vs}\n"
-        f"Breadth {t['up']} up / {t['down']} down | sentiment {d.sentiment_score}/100 | {d.regime}\n"
+        f"INVESTOR — English summary  {d.generated}\n"
+        f"KSE-100 {d.day_label} {fmt_pct(d.day_pct)} | {fmt(t['last'])} | vs 200-day average {vs}\n"
+        f"Breadth (stocks up vs down): {t['up']} / {t['down']} | sentiment {d.sentiment_score}/100 | {d.regime}\n"
         f"{bias}\n"
-        f"Full detail Roman Urdu mein next messages. Not financial advice."
+        f"Detailed Roman Urdu follows. This is not financial advice."
     )
 
 
 def investor_ru_stance(d: Digest) -> list[str]:
     if d.regime.startswith("DOWN") or d.sentiment_score < 32:
         return [
-            "Aaj ka bias defensive hai. Dip blindly mat khareedo.",
-            "Lump-sum skip. Agar add karna hai to size chhota, aur sirf us name par jiska 3-year thesis pehle se likha ho.",
-            "Limit-up aur low-volume spikes speculation hain — portfolio ke liye nahi.",
+            "Bias defensive rakhein. Decline ko automatic discount na samjhein.",
+            "Lump-sum (ek hi dafa bari raqam) aaj munasiib nahi. Agar add karein to chhoti size, aur sirf us company par jiska 3-year thesis pehle se maujood ho.",
+            "Limit-up (~10% daily ceiling) aur low-volume spikes speculation hain; core portfolio ke liye nahi.",
         ]
     if "below" in d.regime.lower() or d.sentiment_score < 45:
         return [
-            "KSE-100 200-day average ke neeche hai, isliye bull case abhi prove nahi hua.",
-            "Default: wait. Staged add sirf quality KSE-100 names mein, circuit-hitter mein nahi.",
-            "Jo name 50-day average se bohat upar bhaag chuka ho, usko chase mat karo.",
+            "KSE-100 200-day average ke neeche hai, is liye long bull case confirm nahi.",
+            "Default wait. Staged add (chand dafa chhoti khareed) sirf liquid KSE-100 names mein sochiye, circuit-hitter mein nahi.",
+            "Jo name 50-day average se ziyada stretch ho chuka ho, usko chase na karein.",
         ]
     if d.regime.startswith("UP"):
         return [
-            "Long trend supportive hai, lekin green day ka matlab ye nahi ke har cheez buy karo.",
-            "Quality par ordinary red days pe add soch sakte ho. Extended names FOMO hain.",
-            "Ek hi stock agar portfolio ka bohat bara hissa ban jaye to rebalance socho.",
+            "Long trend supportive hai; lekin green session ka matlab har name buy nahi.",
+            "Quality names par ordinary red days pe add consider ho sakta hai. Extended names par FOMO avoid karein.",
+            "Agar ek stock portfolio ka disproportionate hissa ban jaye to rebalance par ghaur karein.",
         ]
     return [
-        "Tape mixed hai. Hero trade se parhez.",
-        "200-day average ke around whipsaw common hai — size chhota rakho.",
-        "Dry powder rakho jab tak 50-day aur price dono 200-day ke upar na hon.",
+        "Tape mixed hai. Bina plan ke hero trade se parhez karein.",
+        "200-day average ke qareeb whipsaw (tez up-down) aam hai — size conservative rakhein.",
+        "Jab tak price aur 50-day average dono 200-day ke upar na hon, dry powder (unused cash) rakhein.",
     ]
 
 
 def learner_ru_parts(d: Digest) -> list[str]:
     t = _tape(d)
-    vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
+    vs = t["vs_200"]
     closed = f"Note: {d.closed_note}\n\n" if d.closed_note else ""
     watch = "\n".join(
-        f"• {h.symbol}: day {fmt_pct(h.day_pct)}, 1m {fmt_pct(h.r1m)}, 6m {fmt_pct(h.r6m)}, "
-        f"1y {fmt_pct(h.r1y)}, vs 200-day {fmt_pct(h.vs_200)}"
+        f"• {h.symbol} ({h.name[:32]})\n"
+        f"  Last price {fmt(h.last)} | aaj {fmt_pct(h.day_pct)} | "
+        f"1 month {fmt_pct(h.r1m)} | 6 months {fmt_pct(h.r6m)} | 1 year {fmt_pct(h.r1y)}\n"
+        f"  vs 200-day average: {fmt_pct(h.vs_200)} "
+        f"({'upar = long chart theek' if (h.vs_200 or 0) >= 0 else 'neeche = long chart kamzor'})"
         for h in d.watchlist
-    ) or "Watchlist load nahi hui."
+    ) or "Watchlist load nahi ho saki."
     p1 = (
-        f"LEARNER — Roman Urdu (detail)  {d.generated}\n"
-        f"Yeh financial advice nahi. Loss ho sakta hai.\n"
+        f"LEARNER — Roman Urdu tafseel  {d.generated}\n"
+        f"Yeh report taleem ke liye hai, financial advice nahi. Shares mein loss mumkin hai.\n"
         f"{closed}"
-        f"Aaj KSE-100 {d.day_label} raha, change {fmt_pct(d.day_pct)}. Level {fmt(t['last'])}.\n"
-        f"200-day average se farq: {vs}. {d.why}\n"
-        f"Breadth: {t['up']} stocks up, {t['down']} down. Agar zyada tar stocks down hon to sirf index dekh ke khushi/gham nahi karna.\n"
-        f"Sentiment {d.sentiment_label} ({d.sentiment_score}/100).\n\n"
-        f"Aap ne abhi buy start nahi kiya — theek hai. Aaj order mat do. Broker mein cash rehne do.\n"
-        f"Har din teen cheezein dekho: (1) market up ya down (2) 200-day average ke upar ya neeche "
-        f"(3) zyada stocks saath move kiye ya nahi.\n\n"
-        f"Aaj ka lesson: {d.lesson}"
+        f"1) Index kya hai?\n"
+        f"KSE-100 Pakistan Stock Exchange ki 100 bari companies ka scoreboard hai. "
+        f"Aaj yeh {d.day_label} raha: {fmt_pct(d.day_pct)}, level {fmt(t['last'])}. "
+        f"Agar KSE-100 gire to aksar portfolios mein ehsas hota hai, chahe aap ne abhi kuch khareeda na ho.\n\n"
+        f"2) 200-day average kya hai?\n"
+        f"Yeh pichli ~200 trading days ki average price ki ahista line hai. "
+        f"Upar hona = lambi muddat ka chart generally up; neeche hona = long trend kamzor. "
+        f"{ru_vs_200(vs)}\n\n"
+        f"3) Breadth kya hai?\n"
+        f"Yeh ginti hai ke kitne stocks up gaye, kitne down. Aaj {t['up']} up, {t['down']} down. "
+        f"Agar index thora move kare lekin zyada stocks down hon, to pressure chhupa hua hota hai.\n\n"
+        f"4) Sentiment score kya hai?\n"
+        f"0 = bohat dara hua mood, 100 = bohat hopeful. Aaj {d.sentiment_score}/100 ({d.sentiment_label}). "
+        f"Yeh andaza index, 200-day average, breadth, aur headlines se banaya jata hai — guarantee nahi.\n\n"
+        f"Aap ka account naya hai. Aaj koi buy order na dein. Cash broker mein reh sakti hai. "
+        f"Pehle 2–3 weeks yeh notes parh kar terms seekhein.\n\n"
+        f"Aaj ki dars: {ru_lesson(d)}"
     )
-    p2 = "Watchlist (sirf study, buy list nahi):\n" + watch
-    p2 += "\n\nKya change hua last report se:\n" + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
-    p3 = "KSE-100 aaj:\nUp: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["gainers"])
-    p3 += "\nDown: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["losers"])
-    p3 += "\n\nNews (headline skim):\n"
+    p2 = (
+        "Watchlist kya hai?\n"
+        "Yeh un companies ki list hai jinhein aap bina khareede track karte hain (watchlist.txt). "
+        "Buy list nahi hai.\n\n"
+        "Column ka matlab:\n"
+        "• day = aaj ka change\n"
+        "• 1 month / 6 months / 1 year = us daur ka return\n"
+        "• vs 200-day average = slow trend se kitna upar/neeche\n\n"
+        f"{watch}\n\n"
+        "Pichli report se farq:\n"
+        + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
+    )
+    p3 = (
+        "KSE-100 ke andar aaj ke movers (seekhne ke liye, khareedne ke liye nahi):\n"
+        "Relative up: "
+        + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["gainers"])
+        + "\nRelative down: "
+        + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["losers"])
+        + "\n\nVolume = kitne shares trade hue. Bohat kam volume + tez % move aksar unreliable hota hai.\n"
+        "Limit-up (~+10%) wale chhote, non-KSE-100 names beginner ke liye trap ho sakte hain; unhe ignore karein.\n\n"
+        "Headlines (skim; + hopeful, - worried, · mixed):\n"
+    )
     for item in d.headlines[:6]:
         mark = {"positive": "+", "negative": "-", "neutral": "·"}[item.tone]
         p3 += f"{mark} {item.title}\n"
-    p3 += (
-        "\n+10% wale chhote names KSE-100 ke bahar aksar trap hote hain. Unhe ignore karo.\n"
-        "Tables GitHub pe reports/latest.md mein hain."
-    )
+    p3 += "\nMukammal tables: GitHub file reports/latest.md"
     return [p1, p2, p3]
 
 
 def investor_ru_parts(d: Digest) -> list[str]:
     t = _tape(d)
-    vs = "n/a" if t["vs_200"] is None else fmt_pct(t["vs_200"])
+    vs = t["vs_200"]
     closed = f"Note: {d.closed_note}\n\n" if d.closed_note else ""
-    stance = "\n".join(f"• {line}" for line in investor_ru_stance(d))
+    stance = "\n".join(f"{i}. {line}" for i, line in enumerate(investor_ru_stance(d), 1))
     strong = t["strong"]
     strong_txt = "\n".join(
-        f"• {h.symbol}  day {fmt_pct(h.day_pct)}  1m {fmt_pct(h.r1m)}  6m {fmt_pct(h.r6m)}  "
-        f"1y {fmt_pct(h.r1y)}  vs 200-day {fmt_pct(h.vs_200)}  vol {h.volume:,.0f}"
+        f"• {h.symbol} ({h.name[:28]})\n"
+        f"  Last {fmt(h.last)} | session {fmt_pct(h.day_pct)} | "
+        f"1m {fmt_pct(h.r1m)} | 6m {fmt_pct(h.r6m)} | 1y {fmt_pct(h.r1y)}\n"
+        f"  vs 200-day {fmt_pct(h.vs_200)} | vs 50-day {fmt_pct(h.vs_50)} | volume {h.volume:,.0f}"
         for h in strong
-    ) or "Filter se koi name nahi guzra (200-day ke upar + sane 6m/1y + liquidity)."
+    ) or "Is filter se koi name qualify nahi kiya."
+    wide = ""
     if abs(d.day_pct) >= 1.5:
-        wide = f"\nWide day ({fmt_pct(d.day_pct)}). Intraday emotion ko overnight rakhna behtar hai."
-    else:
-        wide = ""
+        wide = (
+            f"\n\nWide session ({fmt_pct(d.day_pct)}): ek din ka bara move aksar emotion + positioning hota hai. "
+            "Nayi aggressive position ko overnight sochna behtar hai."
+        )
     p1 = (
-        f"INVESTOR — Roman Urdu (detail)  {d.generated}\n"
-        f"Yeh financial advice nahi. Capital at risk.\n"
+        f"INVESTOR — Roman Urdu tafseel  {d.generated}\n"
+        f"Yeh research note hai, recommendation nahi. Capital at risk rehta hai.\n"
         f"{closed}"
-        f"Tape: KSE-100 {d.day_label} {fmt_pct(d.day_pct)}, level {fmt(t['last'])}, "
-        f"vs 200-day average {vs}. 5-session {fmt_pct(d.five_pct)}.\n"
-        f"Regime: {d.regime}. Sentiment {d.sentiment_score}/100 ({d.sentiment_label}).\n"
-        f"Breadth {t['up']} / {t['down']} (up/down). "
-        f"Agar decliners heavy hon to index bounce sirf short-covering ho sakta hai.\n\n"
+        f"Tape (live/delayed board ka khulasa):\n"
+        f"KSE-100 {d.day_label} {fmt_pct(d.day_pct)}, level {fmt(t['last'])}, "
+        f"pichli 5 sessions {fmt_pct(d.five_pct)}.\n"
+        f"{ru_vs_200(vs)}\n"
+        f"50-day average (tez trend line, ~50 sessions) vs 200-day average (ahista line): "
+        f"{'50-day abhi 200-day ke upar hai (intermediate trend itna bura nahi).' if (d.ma50 and d.ma200 and d.ma50 > d.ma200) else '50-day 200-day ke qareeb/neeche hai — intermediate trend kamzor.'}\n\n"
+        f"Breadth = kitne symbols up vs down. Aaj {t['up']} up, {t['down']} down. "
+        f"Agar decliners heavy hon to index ka koi bounce short-covering (short positions band karna) ho sakta hai, naya accumulation nahi.\n"
+        f"Sentiment {d.sentiment_score}/100 ({d.sentiment_label}) — yeh index + trend lines + breadth + headlines ka combined andaza hai.\n"
+        f"Regime label: {d.regime}.\n\n"
         f"Stance:\n{stance}{wide}"
     )
-    p2 = "Last report se change:\n" + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
-    p2 += (
-        "\n\nQuality screen (KSE-100, 200-day ke upar, 6m aur 1y positive, "
-        "1y rocket exclude, volume/mcap filter):\n"
-        + strong_txt
+    p2 = (
+        "Pichli report se farq:\n"
+        + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
+        + "\n\nQuality screen kya hai?\n"
+        "Yeh buy list nahi. Filter yeh hai: (a) KSE-100 member, (b) price 200-day average ke upar, "
+        "(c) ~6-month aur ~1-year return positive, (d) 1-year rocket (~80%+) exclude, "
+        "(e) volume/mcap itna ke naam liquid ho. Matlab: lambi chart theek, lekin valuation check aap khud karein.\n\n"
+        f"{strong_txt}"
     )
-    p3 = "KSE-100 movers\nGainers: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["gainers"])
-    p3 += "\nLosers: " + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["losers"])
-    p3 += "\nVolume leaders: " + ", ".join(f"{q.symbol}" for q in t["active"])
+    p3 = (
+        "Session tape — KSE-100:\n"
+        "Relative gainers: "
+        + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["gainers"])
+        + "\nRelative losers: "
+        + ", ".join(f"{q.symbol} {fmt_pct(q.pct)}" for q in t["losers"])
+        + "\nVolume leaders (zyada shares trade): "
+        + ", ".join(q.symbol for q in t["active"])
+    )
     if t["hot_sectors"]:
-        p3 += "\nRelative firm sectors: " + ", ".join(s.name for s in t["hot_sectors"])
+        p3 += "\nRelative firm sectors (us group mein ziyada stocks up): " + ", ".join(s.name for s in t["hot_sectors"])
     if t["cold_sectors"]:
-        p3 += "\nSoft sectors: " + ", ".join(s.name for s in t["cold_sectors"])
-    p3 += "\n\nNews:\n"
+        p3 += "\nSoft sectors (zyada stocks down): " + ", ".join(s.name for s in t["cold_sectors"])
+    p3 += (
+        "\n\nGainer chase vs quality: aaj ka % leader aksar mean-reversion karta hai. "
+        "Core add ke liye pehle liquidity, 200-day average, aur khud ka thesis dekhein.\n\n"
+        "Headlines (+ hopeful, - worried, · mixed):\n"
+    )
     for item in d.headlines[:7]:
         mark = {"positive": "+", "negative": "-", "neutral": "·"}[item.tone]
         p3 += f"{mark} {item.title}\n"
-    p3 += "\nTables: reports/latest-investor.md"
+    p3 += "\nMukammal tables: reports/latest-investor.md"
     return [p1, p2, p3]
 
 
