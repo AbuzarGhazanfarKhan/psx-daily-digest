@@ -8,9 +8,12 @@ Personal use only. Not financial advice.
 from __future__ import annotations
 
 import html as html_lib
+import http.cookiejar
 import json
 import os
+import shutil
 import statistics
+import subprocess
 import sys
 import time
 import urllib.error
@@ -185,17 +188,82 @@ class TableParser(HTMLParser):
             self._cell.append(data)
 
 
-def http_get(url: str, timeout: int = 25, referer: str | None = None) -> bytes:
-    headers = {"User-Agent": USER_AGENT, "Accept": "application/json, text/html, text/xml, */*"}
+_COOKIE_JAR = http.cookiejar.CookieJar()
+_OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(_COOKIE_JAR))
+
+
+def http_get_curl(url: str, referer: str | None, timeout: int) -> bytes:
+    """Force IPv4. GitHub-hosted runners often stall or get RST on IPv6 to PSX."""
+    cmd = [
+        "curl",
+        "-4",
+        "-sS",
+        "-L",
+        "--compressed",
+        "--fail",
+        "--max-time",
+        str(timeout),
+        "-A",
+        USER_AGENT,
+        "-H",
+        "Accept: application/json, text/html, text/xml, */*;q=0.8",
+        "-H",
+        "Accept-Language: en-US,en;q=0.9",
+    ]
+    if referer:
+        cmd.extend(["-e", referer])
+    cmd.append(url)
+    proc = subprocess.run(cmd, capture_output=True, timeout=timeout + 8)
+    if proc.returncode != 0:
+        err = (proc.stderr or b"").decode("utf-8", "replace")[:400]
+        raise RuntimeError(f"curl {proc.returncode}: {err or 'no stderr'}")
+    if not proc.stdout:
+        raise RuntimeError("curl returned empty body")
+    return proc.stdout
+
+
+def http_get_urllib(url: str, referer: str | None, timeout: int) -> bytes:
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "application/json, text/html, text/xml, */*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "close",
+    }
     if referer:
         headers["Referer"] = referer
     req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
+    with _OPENER.open(req, timeout=timeout) as resp:
         return resp.read()
+
+
+def http_get(url: str, timeout: int = 40, referer: str | None = None, attempts: int = 2) -> bytes:
+    last: Exception | None = None
+    methods: list[tuple[str, object]] = []
+    if shutil.which("curl"):
+        methods.append(("curl", lambda: http_get_curl(url, referer, timeout)))
+    methods.append(("urllib", lambda: http_get_urllib(url, referer, timeout)))
+    for attempt in range(max(1, attempts)):
+        for name, fn in methods:
+            try:
+                body = fn()  # type: ignore[operator]
+                if body:
+                    return body
+            except Exception as exc:  # noqa: BLE001
+                last = exc
+                print(f"GET {url} via {name} failed ({exc})", file=sys.stderr)
+        time.sleep(1.2 * (attempt + 1))
+    raise RuntimeError(f"GET failed {url}: {last}")
 
 
 def psx_get(path: str) -> bytes:
     return http_get(f"{PSX_ORIGIN}{path}", referer=f"{PSX_ORIGIN}/")
+
+
+def warmup_psx() -> None:
+    try:
+        http_get(f"{PSX_ORIGIN}/")
+    except Exception as exc:  # noqa: BLE001
+        print(f"PSX homepage warmup skipped: {exc}", file=sys.stderr)
 
 
 def parse_tables(raw: bytes | str) -> list[list[list[str]]]:
@@ -298,7 +366,7 @@ def fetch_yahoo_series(symbol: str) -> QuoteSeries:
     for attempt in range(4):
         for base in hosts:
             try:
-                payload = json.loads(http_get(base.format(symbol=encoded)))
+                payload = json.loads(http_get(f"{base.format(symbol=encoded)}?{query}"))
                 result = (payload.get("chart") or {}).get("result") or []
                 if not result:
                     raise RuntimeError((payload.get("chart") or {}).get("error"))
@@ -320,6 +388,42 @@ def fetch_yahoo_series(symbol: str) -> QuoteSeries:
     raise RuntimeError(f"Yahoo failed for {symbol}: {last_error}")
 
 
+def fetch_index_snapshot(symbol: str) -> QuoteSeries | None:
+    """Last-resort: current vs previous from the trading panel HTML."""
+    try:
+        tables = parse_tables(psx_get("/trading-panel"))
+    except Exception as exc:  # noqa: BLE001
+        print(f"Trading panel snapshot skipped: {exc}", file=sys.stderr)
+        return None
+    wanted = symbol.upper()
+    for table in tables:
+        for row in table:
+            if not row or row[0].replace(" ", "").upper() != wanted:
+                continue
+            current = num(row[1]) if len(row) > 1 else None
+            change = None
+            for cell in row[2:]:
+                parsed = num(cell)
+                if parsed is None:
+                    continue
+                # Prefer an explicit change column (small vs index level).
+                if current is not None and abs(parsed) < abs(current) * 0.2:
+                    change = parsed
+                    break
+            if current is None:
+                continue
+            if change is None:
+                change = 0.0
+            today = datetime.now(PKT).date()
+            prev = current - change
+            return QuoteSeries(
+                symbol=symbol,
+                closes=[(today - timedelta(days=1), prev), (today, current)],
+                source="PSX trading panel snapshot",
+            )
+    return None
+
+
 def load_index(symbol: str) -> QuoteSeries:
     try:
         series = fetch_psx_eod(symbol)
@@ -331,8 +435,12 @@ def load_index(symbol: str) -> QuoteSeries:
             for yahoo in ("KSE100.KA", "KSE100.PSX", "^KSE100"):
                 try:
                     return fetch_yahoo_series(yahoo)
-                except Exception:
-                    continue
+                except Exception as yahoo_exc:  # noqa: BLE001
+                    print(f"Yahoo {yahoo} failed ({yahoo_exc})", file=sys.stderr)
+        snapshot = fetch_index_snapshot(symbol)
+        if snapshot:
+            print(f"{symbol} using trading-panel snapshot fallback", file=sys.stderr)
+            return snapshot
         raise
 
 
@@ -706,7 +814,10 @@ def index_change(series: QuoteSeries) -> tuple[str, float, float, float | None, 
     closes = [c for _, c in series.closes]
     last_day, last_close = series.last
     eod_day, eod_close = series.closes[-1]
-    prev = eod_close if last_day != eod_day else closes[-2]
+    if len(closes) < 2:
+        prev = last_close
+    else:
+        prev = eod_close if last_day != eod_day else closes[-2]
     change = last_close - prev
     day_pct = pct(change, prev)
     label = "UP" if change > 0 else "DOWN" if change < 0 else "FLAT"
@@ -722,12 +833,25 @@ def index_change(series: QuoteSeries) -> tuple[str, float, float, float | None, 
 
 
 def collect() -> Digest:
+    warmup_psx()
     index = load_index("KSE100")
     kse30 = load_optional_index("KSE30")
     allshr = load_optional_index("ALLSHR")
-    quotes = fetch_market_watch()
-    kse100 = fetch_kse100_board()
-    sectors = fetch_sectors()
+    quotes: list[Quote] = []
+    kse100: list[Quote] = []
+    sectors: list[SectorRow] = []
+    try:
+        quotes = fetch_market_watch()
+    except Exception as exc:  # noqa: BLE001
+        print(f"Market watch skipped: {exc}", file=sys.stderr)
+    try:
+        kse100 = fetch_kse100_board()
+    except Exception as exc:  # noqa: BLE001
+        print(f"KSE-100 board skipped: {exc}", file=sys.stderr)
+    try:
+        sectors = fetch_sectors()
+    except Exception as exc:  # noqa: BLE001
+        print(f"Sector summary skipped: {exc}", file=sys.stderr)
     attach_sectors(quotes, kse100, sectors)
     headlines = fetch_headlines(12)
     label, day_change, day_pct, five_pct, ma20, ma50, ma200 = index_change(index)
