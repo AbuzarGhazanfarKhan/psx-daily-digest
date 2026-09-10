@@ -1,0 +1,40 @@
+name: Daily PSX digest
+
+on:
+  schedule:
+    # Change this cron to pick a different time. GitHub cron is UTC, not Pakistan time.
+    # 11:00 AM Pakistan time (UTC+5) Monday–Friday = 06:00 UTC.
+    # PSX trades Sunday–Thursday. To follow trading days instead, use: 0 6 * * 0-4
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run PSX digest
+        env:
+          DIGEST_WEBHOOK_URL: ${{ secrets.DIGEST_WEBHOOK_URL }}
+        run: python psx_analyzer.py
+
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports
+          if git diff --cached --quiet; then
+            echo "No report changes to commit"
+            exit 0
+          fi
+          git commit -m "Add PSX digest for $(date -u +%F)"
+          git push
