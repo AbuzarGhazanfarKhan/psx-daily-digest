@@ -39,10 +39,10 @@ He opens **his** bot, sends `/start` then `hi`, then `getUpdates` on **his** tok
 
 Each person gets:
 
-1. A **short English** ping (numbers + one-line bias)
-2. **Detailed Roman Urdu** (Urdu speech, English letters). Words like KSE-100, 200-day average, volume, breadth stay in English.
+1. **Two Roman Urdu messages** — aaj kya hua, 15-day vs 200-day, aur kal / 15 din ka andaza. English ping nahi. Tables chat mein nahi.
+2. **HTML file attachment** — watchlist, 15d/200d columns, movers, sectors (phone par tables readable).
 
 Learner note = study, do not buy yet.  
 Investor note = tape, stance, quality screen — still not financial advice.
 
-Files: `reports/latest.md` (you) and `reports/latest-investor.md` (him).
+Files: `reports/latest.md` and `reports/latest.html` (you); `reports/latest-investor.md` and `reports/latest-investor.html` (him).
