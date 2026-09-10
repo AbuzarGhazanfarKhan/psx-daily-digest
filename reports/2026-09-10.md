@@ -1,119 +1,139 @@
-# Daily PSX digest — 2026-09-10
+# Daily PSX class notes — 2026-09-10
 
-**Generated:** 2026-09-10 16:25 PKT  
-**Source:** PSX data portal · delayed public data · personal use only  
-**This is not financial advice.** Equities can lose value. One session is not a trend.
-
----
-
-## What you should do today
-
-**Regime:** MIXED / WEAK  
-**Sentiment:** FEARFUL / DEFENSIVE (24/100)  
-**Default stance:** Prefer waiting or tiny staged buys over a lump sum.
-
-1. **Do not buy the dip blindly today.** The tape is defensive. Capital preservation beats hero trades.
-2. **Watchlist only** unless you already have a written 3-year thesis on a name.
-3. **If cash is burning a hole:** split any buy into 4 weekly slices. Put at most one slice to work today.
-4. **Avoid** upper-circuit penny names and high-volume junk. Those are trading, not investing.
-5. **Wide day (-1.79%).** Single-session moves this large are noise plus emotion. Sleep on any new idea.
+**Generated:** 2026-09-10 16:35 PKT  
+**For:** someone who just opened an account and is **learning for a few weeks before buying**.  
+**Not financial advice.** You can lose money. One day is not a plan.
 
 ---
 
-## Executive snapshot
+## If you have not bought anything yet
 
-| | |
+1. **You have not started buying yet. That is fine.** Today's job is to read this note, not to place an order.
+2. **Cash in your new broker account can wait.** You do not get a prize for buying in the first week.
+3. **Learn three things:** (1) did the whole market go up or down? (2) is KSE-100 above or below the 200-day line? (3) did *most* stocks move with it, or only a few?
+4. **Mood is weak.** This is a good week to watch fear without spending money. Falling prices feel like a sale; for a beginner they are usually a test of patience.
+5. **Big day (-1.79%).** Moves this large are mostly emotion. Sleep on it. Do not open the buy ticket.
+
+**Today's lesson:** Today's lesson: a -1.79% day feels huge. For a long-term investor it is still one candle. Notice how news headlines sound more extreme on days like this.
+
+---
+
+## In one minute
+
+| Question | Today |
 | --- | --- |
-| KSE-100 | **168,865.04** |
-| Day | **DOWN** -3,078.55 (-1.79%) |
-| 5 sessions | -1.62% |
-| 20-day average | 176,769.07 |
-| 50-day average | 178,075.27 |
-| 200-day average | 172,011.93 |
-| vs 200-day | -1.83% |
-| 20-day volatility (stdev) | 2,344.6 pts |
+| Did the whole market go up or down? | **DOWN** -1.79% |
+| KSE-100 level | **168,865.04** |
+| Above or below the 200-day line? | -1.85% |
+| Mood (0 scared → 100 hopeful) | **SCARED** (24/100) |
+| Simple stance | Sit in cash and learn. Waiting is a valid choice. |
 
-- KSE30 **50,247.11** · DOWN -925.01 (-1.81%) | 5d -1.85% | vs 200d -3.35%
-- ALLSHR **102,295.04** · DOWN -2,026.36 (-1.94%) | 5d -1.69% | vs 200d -1.21%
+KSE-100 is the scoreboard of Pakistan's 100 bigger companies. If it falls, most portfolios feel it.
 
-Price is under the 200-day average. Until it reclaims that line and holds, bulls have to prove it.
+- KSE30 **50,247.11** · DOWN -925.01 (-1.81%) | 5d -3.71% | vs 200d -3.36%
+- ALLSHR **102,295.04** · DOWN -2,026.36 (-1.94%) | 5d -3.68% | vs 200d -1.24%
 
----
-
-## Sentiment detail
-
-- Index is down -1.79% on the session, which weighs on near-term mood.
-- KSE-100 is -1.8% below the 200-day average (longer trend is damaged).
-- The 50-day average is above the 200-day average (intermediate trend still constructive).
-- Market breadth: 58 advancers vs 405 decliners across the regular board.
-- Headline mix in this brief: 2 constructive, 3 cautious, 7 mixed.
-
-Breadth and news can disagree with the index. If they all point the same way, the mood is more trustworthy. If they split, size down.
+Price is under the 200-day average. Until it climbs back and stays there, 'the market is going up' is not proven.
 
 ---
 
-## If you want to invest today
+## What changed since last report
 
-- Today is a **poor day for lump-sum investing** in the broad market.
-- If you still want exposure, restrict it to **historically strong KSE-100 names** below (above their 200-day average with positive 6-month and 1-year returns).
-- Prefer names that are **quiet or slightly red**, not the ones hitting 10% limit-up.
+- This is the first saved snapshot. From tomorrow, this box will say what changed.
 
-### Historically strong KSE-100 names
-These cleared a **rules filter**, not a crystal ball: still above the 200-day average, and positive over ~6 months and ~1 year. Ranked by 1-year return.
+---
 
-| Symbol | Name | Last | Day | 1m | 3m | 6m | 1y | vs 200d |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PTC | Pakistan Telecommunication | 65.34 | -1.50% | -9.76% | +0.40% | +25.70% | +181.76% | +10.61% |
-| CNERGY | Cnergyico PK  Limited | 13.06 | -5.28% | +9.38% | +62.24% | +106.32% | +77.45% | +50.59% |
-| ATRL | Attock Refinery Limited | 1,094.02 | -1.26% | +10.75% | +26.89% | +58.01% | +65.72% | +28.57% |
-| JVDC | Javedan Corporation Limite | 143.11 | -5.48% | -5.17% | -2.39% | +30.22% | +55.27% | +13.40% |
-| GHNI | Ghandhara Industries Limit | 1,219.58 | -3.84% | -1.58% | +32.32% | +54.15% | +48.21% | +32.02% |
-| ILP | Interloop Limited | 104.99 | -4.45% | +0.98% | +28.85% | +34.74% | +46.78% | +20.46% |
-| MEBL | Meezan Bank Limited | 556.12 | -3.58% | -5.23% | +14.59% | +26.68% | +42.44% | +12.70% |
-| PSX | Pakistan Stock Exchange Li | 47.96 | -2.54% | -9.13% | +8.29% | +31.29% | +34.68% | +7.49% |
-| AKBL | Askari Bank Limited | 108.25 | -3.71% | +0.97% | +11.99% | +23.63% | +30.11% | +8.09% |
-| DCR | Dolmen City REIT | 40.74 | -1.15% | +5.54% | +12.60% | +13.48% | +26.88% | +9.77% |
+## Why the mood looks like this
 
-### Better entries vs already-extended
-Names from that list **not stretched** (>12% above the 50-day average are treated as extended):
+- The index is down -1.79% today. People feel more scared.
+- KSE-100 is -1.9% below the 200-day average (the long trend is hurt).
+- The medium-term line (50-day) is still above the long-term line (200-day).
+- Across the market, 58 stocks went up and 405 went down. That is called breadth.
+- In today's headlines: 2 sounded hopeful, 3 sounded worried, 7 were mixed.
+
+If the index, the 200-day line, most stocks, *and* the news all agree, trust the mood more. If they argue, just watch.
+
+---
+
+## Your watchlist
+
+These are **study names** from `watchlist.txt` (big, commonly discussed companies). Edit that file anytime. This is not a buy list.
 
 | Symbol | Name | Last | Day | 1m | 3m | 6m | 1y | vs 200d |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PTC | Pakistan Telecommunication | 65.34 | -1.50% | -9.76% | +0.40% | +25.70% | +181.76% | +10.61% |
-| ATRL | Attock Refinery Limited | 1,094.02 | -1.26% | +10.75% | +26.89% | +58.01% | +65.72% | +28.57% |
-| JVDC | Javedan Corporation Limite | 143.11 | -5.48% | -5.17% | -2.39% | +30.22% | +55.27% | +13.40% |
-| GHNI | Ghandhara Industries Limit | 1,219.58 | -3.84% | -1.58% | +32.32% | +54.15% | +48.21% | +32.02% |
-| ILP | Interloop Limited | 104.99 | -4.45% | +0.98% | +28.85% | +34.74% | +46.78% | +20.46% |
-| MEBL | Meezan Bank Limited | 556.12 | -3.58% | -5.23% | +14.59% | +26.68% | +42.44% | +12.70% |
-| PSX | Pakistan Stock Exchange Li | 47.96 | -2.54% | -9.13% | +8.29% | +31.29% | +34.68% | +7.49% |
-| AKBL | Askari Bank Limited | 108.25 | -3.71% | +0.97% | +11.99% | +23.63% | +30.11% | +8.09% |
+| OGDC | Oil & Gas Development Comp | 315.92 | -1.94% | -2.42% | -1.16% | +19.87% | +15.73% | +3.70% |
+| PPL | Pakistan Petroleum Limited | 213.20 | -3.05% | -7.09% | -5.37% | +4.40% | +14.17% | -6.87% |
+| HUBC | The Hub Power Company Limi | 202.29 | -1.82% | -5.22% | -5.89% | -0.97% | +8.72% | -7.34% |
+| LUCK | Lucky Cement Limited | 408.03 | -1.76% | -10.20% | -5.58% | +4.46% | -12.47% | -7.95% |
+| MEBL | Meezan Bank Limited | 536.21 | -3.58% | -9.66% | +9.35% | +23.66% | +36.91% | +8.53% |
+| UBL | United Bank Limited | 422.50 | -0.84% | -10.71% | +5.58% | +2.34% | +10.49% | -1.09% |
+| SYS | Systems Limited | 123.07 | -1.35% | -9.30% | -16.69% | +2.70% | -11.38% | -15.62% |
 
-No names on the strong list look violently extended versus the 50-day average.
+How to read a row: **Day** = today. **1m / 6m / 1y** = last month / ~6 months / ~1 year. **vs 200d** = above (+) or below (−) the slow trend line.
 
-### Leave these alone today
-KSE-100 names **below** the 200-day average (weak 1-year first):
+---
 
-- `MEHT` Mehmood Textile Mills Limited · 1y -59.92% · still below 200-day average
-- `HUMNL` Hum Network Limited · 1y -37.91% · still below 200-day average
-- `SSOM` S.S.Oil Mills Limited · 1y -37.65% · still below 200-day average
-- `TGL` Tariq Glass Industries Limited · 1y -37.51% · still below 200-day average
-- `SSGC` Sui Southern Gas Company Limited · 1y -37.44% · still below 200-day average
-- `PABC` Pakistan Aluminium Beverage Cans Limited · 1y -37.03% · still below 200-day average
+## Healthier long-term KSE-100 names (study list)
 
-Hot non-index names (easy to get trapped):
+Filter (not magic): still above the 200-day line, up over ~6 months and ~1 year, **not** a crazy rocket (+80% in a year is excluded), and big/liquid enough for a beginner to learn on.
 
-- `CHBL` (Textile Composite) +10.08% — not KSE-100, treat as speculation
-- `SHCM` (Textile Spinning) +10.01% — not KSE-100, treat as speculation
-- `PIM` (Modarabas) +10.01% — not KSE-100, treat as speculation
-- `SLYTWU` (Textile Spinning) +10.00% — not KSE-100, treat as speculation
-- `ELCM` (Textile Spinning) +10.00% — not KSE-100, treat as speculation
-- `786` (Inv. Banks / Inv. Cos. / Securities Cos.) +9.98% — not KSE-100, treat as speculation
+- Do **not** buy a big amount in one click.
+- If you study names, pick **big KSE-100 companies** from your watchlist, not the day's +10% penny stocks.
+- Write one sentence: *why would I still want this company in 3 years?* If you cannot, skip it.
+
+| Symbol | Name | Last | Day | 1m | 3m | 6m | 1y | vs 200d |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ATRL | Attock Refinery Limited | 1,080.23 | -1.26% | +1.96% | +23.91% | +54.47% | +64.86% | +26.66% |
+| JVDC | Javedan Corporation Limite | 135.27 | -5.48% | -10.34% | -9.91% | +22.42% | +46.21% | +6.93% |
+| GHNI | Ghandhara Industries Limit | 1,172.75 | -3.84% | -5.32% | +26.91% | +50.03% | +42.64% | +26.69% |
+| ILP | Interloop Limited | 100.32 | -4.45% | -3.67% | +21.14% | +27.85% | +40.27% | +14.94% |
+| MEBL | Meezan Bank Limited | 536.21 | -3.58% | -9.66% | +9.35% | +23.66% | +36.91% | +8.53% |
+| PSX | Pakistan Stock Exchange Li | 46.74 | -2.54% | -10.75% | +6.15% | +23.00% | +27.29% | +4.69% |
+| DCR | Dolmen City REIT | 40.27 | -1.15% | +4.00% | +11.24% | +9.31% | +25.06% | +8.39% |
+| AKBL | Askari Bank Limited | 104.23 | -3.71% | -2.42% | +6.77% | +26.55% | +22.94% | +4.03% |
+| OGDC | Oil & Gas Development Comp | 315.92 | -1.94% | -2.42% | -1.16% | +19.87% | +15.73% | +3.70% |
+| ENGROH | Engro Holdings Limited | 264.22 | -1.09% | -6.22% | +1.67% | +4.27% | +15.61% | +0.22% |
+
+Quieter of those (not running too far ahead of the 50-day line):
+
+| Symbol | Name | Last | Day | 1m | 3m | 6m | 1y | vs 200d |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ATRL | Attock Refinery Limited | 1,080.23 | -1.26% | +1.96% | +23.91% | +54.47% | +64.86% | +26.66% |
+| JVDC | Javedan Corporation Limite | 135.27 | -5.48% | -10.34% | -9.91% | +22.42% | +46.21% | +6.93% |
+| GHNI | Ghandhara Industries Limit | 1,172.75 | -3.84% | -5.32% | +26.91% | +50.03% | +42.64% | +26.69% |
+| ILP | Interloop Limited | 100.32 | -4.45% | -3.67% | +21.14% | +27.85% | +40.27% | +14.94% |
+| MEBL | Meezan Bank Limited | 536.21 | -3.58% | -9.66% | +9.35% | +23.66% | +36.91% | +8.53% |
+| PSX | Pakistan Stock Exchange Li | 46.74 | -2.54% | -10.75% | +6.15% | +23.00% | +27.29% | +4.69% |
+| DCR | Dolmen City REIT | 40.27 | -1.15% | +4.00% | +11.24% | +9.31% | +25.06% | +8.39% |
+| AKBL | Askari Bank Limited | 104.23 | -3.71% | -2.42% | +6.77% | +26.55% | +22.94% | +4.03% |
+
+None of the study names look wildly stretched vs the 50-day line.
+
+Weaker KSE-100 names still **under** the 200-day line (study why, don't 'catch the falling knife'):
+
+- `MEHT` Mehmood Textile Mills Limited · 1y -60.45% · still below the 200-day line
+- `SSGC` Sui Southern Gas Company Limited · 1y -41.43% · still below the 200-day line
+- `PABC` Pakistan Aluminium Beverage Cans Limited · 1y -39.64% · still below the 200-day line
+- `HUMNL` Hum Network Limited · 1y -39.28% · still below the 200-day line
+- `TPLRF1` TPL REIT Fund I · 1y -38.78% · still below the 200-day line
+- `SSOM` S.S.Oil Mills Limited · 1y -38.09% · still below the 200-day line
+
+Hot names **outside** KSE-100 (easy trap):
+
+- `CHBL` (Textile Composite) +10.08% — not in KSE-100. For a beginner this is gambling, not investing.
+- `SHCM` (Textile Spinning) +10.01% — not in KSE-100. For a beginner this is gambling, not investing.
+- `PIM` (Modarabas) +10.01% — not in KSE-100. For a beginner this is gambling, not investing.
+- `SLYTWU` (Textile Spinning) +10.00% — not in KSE-100. For a beginner this is gambling, not investing.
+- `ELCM` (Textile Spinning) +10.00% — not in KSE-100. For a beginner this is gambling, not investing.
+- `786` (Inv. Banks / Inv. Cos. / Securities Cos.) +9.98% — not in KSE-100. For a beginner this is gambling, not investing.
 
 ---
 
 ## Today's KSE-100 tape
 
-### Gainers
+Green/red today is noise. Use it to *notice* sectors, not to buy.
+
+### Up today
 | Symbol | Name | Sector | Last | Day | Volume |
 | --- | --- | --- | --- | --- | --- |
 | PSEL | Pakistan Services Limited | Miscellaneous | 1,094.76 | +1.53% | 13,506 |
@@ -125,7 +145,7 @@ Hot non-index names (easy to get trapped):
 | APL | Attock Petroleum Limited | Oil & Gas Marketing Co | 571.74 | -0.25% | 55,634 |
 | KAPCO | Kot Addu Power Company Limit | Power Generation & Dis | 26.47 | -0.30% | 371,930 |
 
-### Losers
+### Down today
 | Symbol | Name | Sector | Last | Day | Volume |
 | --- | --- | --- | --- | --- | --- |
 | SSGC | Sui Southern Gas Company Lim | Oil & Gas Marketing Co | 23.89 | -6.53% | 6,745,940 |
@@ -137,7 +157,7 @@ Hot non-index names (easy to get trapped):
 | TPLRF1 | TPL REIT Fund I | Real Estate Investment | 9.06 | -4.93% | 2,912,821 |
 | PABC | Pakistan Aluminium Beverage  | Miscellaneous | 91.82 | -4.89% | 17,563 |
 
-### Most active
+### Most traded
 | Symbol | Name | Sector | Last | Day | Volume |
 | --- | --- | --- | --- | --- | --- |
 | CNERGY | Cnergyico PK  Limited | Refinery | 12.37 | -5.28% | 99,405,516 |
@@ -151,15 +171,15 @@ Hot non-index names (easy to get trapped):
 
 ---
 
-## Sector breadth
+## Sectors (groups of similar companies)
 
-Advance minus decline. Positive = more stocks up than down in that sector.
+If more stocks in a sector went up than down, that group had a better day.
 
-### Firm
-_No sector has more advancers than decliners today._
+### Relatively firm
+_No sector had more stocks up than down today._
 
 ### Soft
-| Sector | Adv | Dec | Unch | Turnover | Mcap (B) |
+| Sector | Up | Down | Flat | Turnover | Mcap (B) |
 | --- | --- | --- | --- | --- | --- |
 | Textile Spinning | 6 | 31 | 6 | 7,459,678 | 100.02 |
 | Food & Personal Care Products | 0 | 24 | 1 | 18,101,676 | 1,327.17 |
@@ -170,9 +190,9 @@ _No sector has more advancers than decliners today._
 
 ---
 
-## News & tone
+## News (simple tags)
 
-🟢 constructive · 🔴 cautious · ⚪ mixed. Tone is a keyword read of the headline, not a full article score.
+🟢 sounded hopeful · 🔴 sounded worried · ⚪ mixed. This is a keyword skim of the headline, not a full article.
 
 - ⚪ **Dawn Business:** [SBP to set up system to access bank transaction data](https://www.dawn.com/news/2028817/sbp-to-set-up-system-to-access-bank-transaction-data) _Thu, 10 Sep 2026 07:42:09 +0500_
 - 🟢 **Business Recorder:** [Rupee records gain against US dollar](https://www.brecorder.com/news/40438859/intra-day-update-rupee-records-gain-against-us-dollar) _Thu, 10 Sep 2026 16:10:05 +0500_
@@ -189,9 +209,19 @@ _No sector has more advancers than decliners today._
 
 ---
 
-## How to use this
+## Words to know
 
-1. Read **What you should do today** first. If it says wait, the tables are a watchlist, not a shopping list.
-2. Historically strong ≠ cheap. Check filings, debt, payouts, and your own time horizon.
-3. Size so a 25% drawdown on a name does not change your life.
-4. This file is delayed public data. Confirm last price with your broker before any order.
+- **KSE-100** — Pakistan's main stock index. One number for 100 larger companies.
+- **200-day average** — slow trend line. Above it ≈ long uptrend; below it ≈ long downtrend.
+- **50-day average** — faster trend line.
+- **Breadth** — how many stocks went up vs down, not just the index.
+- **Volume** — how many shares traded. Very low volume + huge % move is often a trap.
+- **Watchlist** — names you track without buying yet.
+
+## How to use these notes for a few weeks
+
+1. Read **If you have not bought anything yet** first. Do not open a buy order because a table looks green.
+2. Each day, say out loud: up or down? above or below 200-day? scared or hopeful news?
+3. Follow your watchlist like homework. After 10–15 notes you will see the same names in different moods.
+4. When you *do* start, start tiny, in a name you already understand, with money you can leave for years.
+5. Confirm the last price with your broker. This file is delayed public data.

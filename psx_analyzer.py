@@ -90,6 +90,7 @@ class Quote:
     pct: float
     volume: float
     weight: float | None = None
+    mcap: float | None = None
 
 
 @dataclass
@@ -117,6 +118,8 @@ class StockHistory:
     vs_50: float | None
     vs_200: float | None
     above_200: bool
+    volume: float = 0.0
+    mcap: float | None = None
 
 
 @dataclass
@@ -145,6 +148,10 @@ class Digest:
     sentiment_detail: list[str]
     playbook: list[str]
     invest_today: list[str]
+    watchlist: list[StockHistory]
+    vs_yesterday: list[str]
+    lesson: str
+    closed_note: str
 
 
 class TableParser(HTMLParser):
@@ -498,6 +505,7 @@ def fetch_kse100_board() -> list[Quote]:
                 pct=percent,
                 volume=volume or 0.0,
                 weight=weight,
+                mcap=num(row[10]) if len(row) > 10 else None,
             )
         )
     return out
@@ -552,6 +560,8 @@ def fetch_histories(members: list[Quote], market_day: date) -> list[StockHistory
             vs_50=None if ma50 is None else pct(last_close - ma50, ma50),
             vs_200=None if ma200 is None else pct(last_close - ma200, ma200),
             above_200=bool(ma200 is not None and last_close > ma200),
+            volume=quote.volume,
+            mcap=quote.mcap,
         )
 
     with ThreadPoolExecutor(max_workers=12) as pool:
@@ -571,33 +581,33 @@ def fetch_histories(members: list[Quote], market_day: date) -> list[StockHistory
 def classify_regime(price: float, ma50: float | None, ma200: float | None) -> tuple[str, str, str]:
     if ma200 is None:
         return (
-            "INSUFFICIENT HISTORY",
-            "Sit tight until a longer series is available.",
-            "Need about 200 trading days before a 200-day average read is meaningful.",
+            "NOT ENOUGH HISTORY YET",
+            "Just watch. We do not have a long enough chart to judge the trend.",
+            "The 200-day average is a slow moving line of the last ~200 trading days. We need that line before calling a trend.",
         )
     above_200 = price > ma200
     if ma50 is not None and ma50 > ma200 and above_200:
         return (
-            "UPTREND",
-            "Trend supports long-horizon accumulation — still not a lump-sum green light.",
-            "Price and the 50-day average are both above the 200-day average. Rising-market regime.",
+            "UP TREND",
+            "The big picture is rising. That still does not mean 'buy today'.",
+            "KSE-100 is above its 200-day average, and the 50-day average is also above the 200-day. In simple words: the market has been generally going up.",
         )
     if ma50 is not None and ma50 < ma200 and not above_200:
         return (
-            "DOWNTREND",
-            "Sit tight, or dollar-cost average only with money you can leave untouched.",
-            "Price and the 50-day average are both below the 200-day average. Weakening-market regime.",
+            "DOWN TREND",
+            "The big picture is falling. This is a learning period, not a shopping day.",
+            "KSE-100 is below its 200-day average, and the 50-day average is also below it. In simple words: the market has been generally going down.",
         )
     if above_200:
         return (
-            "MIXED / LATE TREND",
-            "Do not chase. If you invest, keep it small and staggered.",
-            "Price is still above the 200-day average, but the shorter trend is not clean. Whipsaws are common.",
+            "MIXED (still above the long average)",
+            "Do not chase a bounce. Watch how it behaves around the 200-day line.",
+            "Price is still above the slow 200-day line, but the shorter trend is messy. This zone whipsaws beginners.",
         )
     return (
-        "MIXED / WEAK",
-        "Prefer waiting or tiny staged buys over a lump sum.",
-        "Price is under the 200-day average. Until it reclaims that line and holds, bulls have to prove it.",
+        "MIXED (below the long average)",
+        "Sit in cash and learn. Waiting is a valid choice.",
+        "Price is under the 200-day average. Until it climbs back and stays there, 'the market is going up' is not proven.",
     )
 
 
@@ -687,27 +697,27 @@ def score_sentiment(
     notes: list[str] = []
     if day_pct > 0.4:
         score += 12
-        notes.append(f"Index is up {day_pct:+.2f}% on the session, which lifts near-term mood.")
+        notes.append(f"The index is up {day_pct:+.2f}% today. People feel a bit braver.")
     elif day_pct < -0.4:
         score -= 12
-        notes.append(f"Index is down {day_pct:+.2f}% on the session, which weighs on near-term mood.")
+        notes.append(f"The index is down {day_pct:+.2f}% today. People feel more scared.")
     else:
-        notes.append(f"Index is roughly flat ({day_pct:+.2f}%), so today is not a mood-setter on its own.")
+        notes.append(f"The index is almost flat ({day_pct:+.2f}%). One quiet day does not make a trend.")
 
     if ma200 is not None:
         if price > ma200:
             score += 10
-            notes.append(f"KSE-100 is {pct(price - ma200, ma200):+.1f}% above the 200-day average (longer trend still intact).")
+            notes.append(f"KSE-100 is {pct(price - ma200, ma200):+.1f}% above the 200-day average (the long trend is still up).")
         else:
             score -= 10
-            notes.append(f"KSE-100 is {pct(price - ma200, ma200):+.1f}% below the 200-day average (longer trend is damaged).")
+            notes.append(f"KSE-100 is {pct(price - ma200, ma200):+.1f}% below the 200-day average (the long trend is hurt).")
     if ma50 is not None and ma200 is not None:
         if ma50 > ma200:
             score += 8
-            notes.append("The 50-day average is above the 200-day average (intermediate trend still constructive).")
+            notes.append("The medium-term line (50-day) is still above the long-term line (200-day).")
         else:
             score -= 8
-            notes.append("The 50-day average is below the 200-day average (intermediate trend has rolled over).")
+            notes.append("The medium-term line (50-day) has fallen below the long-term line (200-day).")
 
     if quotes:
         up = sum(1 for q in quotes if q.pct > 0)
@@ -716,84 +726,81 @@ def score_sentiment(
         if total:
             breadth = (up - down) / total
             score += int(breadth * 14)
-            notes.append(f"Market breadth: {up} advancers vs {down} decliners across the regular board.")
+            notes.append(f"Across the market, {up} stocks went up and {down} went down. That is called breadth.")
 
     pos_n = sum(1 for h in headlines if h.tone == "positive")
     neg_n = sum(1 for h in headlines if h.tone == "negative")
     score += (pos_n - neg_n) * 2
-    notes.append(f"Headline mix in this brief: {pos_n} constructive, {neg_n} cautious, {len(headlines) - pos_n - neg_n} mixed.")
+    notes.append(f"In today's headlines: {pos_n} sounded hopeful, {neg_n} sounded worried, {len(headlines) - pos_n - neg_n} were mixed.")
 
     score = max(5, min(95, score))
     if score >= 72:
-        label = "CONSTRUCTIVE / RISK-ON"
+        label = "HOPEFUL"
     elif score >= 58:
-        label = "CAUTIOUSLY POSITIVE"
+        label = "CAUTIOUSLY HOPEFUL"
     elif score >= 45:
-        label = "NEUTRAL / MIXED"
+        label = "MIXED / CALM"
     elif score >= 32:
-        label = "CAUTIOUS / RISK-OFF"
+        label = "CAUTIOUS / WORRIED"
     else:
-        label = "FEARFUL / DEFENSIVE"
+        label = "SCARED"
     return score, label, notes
 
 
 def build_playbook(digest_regime: str, day_pct: float, score: int) -> tuple[list[str], list[str]]:
-    if digest_regime == "DOWNTREND" or score < 32:
-        playbook = [
-            "**Do not buy the dip blindly today.** The tape is defensive. Capital preservation beats hero trades.",
-            "**Watchlist only** unless you already have a written 3-year thesis on a name.",
-            "**If cash is burning a hole:** split any buy into 4 weekly slices. Put at most one slice to work today.",
-            "**Avoid** upper-circuit penny names and high-volume junk. Those are trading, not investing.",
-        ]
+    playbook = [
+        "**You have not started buying yet. That is fine.** Today's job is to read this note, not to place an order.",
+        "**Cash in your new broker account can wait.** You do not get a prize for buying in the first week.",
+        "**Learn three things:** (1) did the whole market go up or down? (2) is KSE-100 above or below the 200-day line? (3) did *most* stocks move with it, or only a few?",
+    ]
+    if digest_regime == "DOWN TREND" or score < 32:
+        playbook.append("**Mood is weak.** This is a good week to watch fear without spending money. Falling prices feel like a sale; for a beginner they are usually a test of patience.")
         invest = [
-            "Today is a **poor day for lump-sum investing** in the broad market.",
-            "If you still want exposure, restrict it to **historically strong KSE-100 names** below (above their 200-day average with positive 6-month and 1-year returns).",
-            "Prefer names that are **quiet or slightly red**, not the ones hitting 10% limit-up.",
+            "Do **not** buy a big amount in one click.",
+            "If you study names, pick **big KSE-100 companies** from your watchlist, not the day's +10% penny stocks.",
+            "Write one sentence: *why would I still want this company in 3 years?* If you cannot, skip it.",
         ]
-    elif digest_regime.startswith("MIXED / WEAK") or score < 45:
-        playbook = [
-            "**Default action: wait.** The index is below the 200-day average, so the burden of proof is on the bulls.",
-            "**Today's job:** read the news, update a watchlist, do not force a full allocation.",
-            "**If you invest today:** one small staged buy in a historically strong KSE-100 name, not a basket of movers.",
-            "**Do not** chase the day's top percentage gainers. Most of those are not quality compounds.",
-        ]
+    elif "below the long average" in digest_regime or score < 45:
+        playbook.append("**The long trend is not proven up.** Waiting is a real decision. You are collecting weeks of notes so your first buy is not a guess.")
         invest = [
-            "Treat today as **optional, small, and quality-only** — not 'go all in'.",
-            "Use the **historically strong** table as the only buy universe if you deploy cash.",
-            "Skip names that are extended 20%+ above the 50-day average; wait for a pullback.",
+            "Stay in **learning mode**. A small 'practice' buy is optional later — not today by default.",
+            "Use the **healthier long-term names** table as a study list, not a shopping cart.",
+            "Ignore limit-up junk. Fast +10% names are usually a trap for new accounts.",
         ]
     elif digest_regime.startswith("MIXED"):
-        playbook = [
-            "**Do not chase.** The long trend is not fully broken, but the tape is messy.",
-            "**Today:** hold existing quality, add only on weakness in names you already researched.",
-            "Keep dry powder. Whipsaws around the 200-day average chew up impatient money.",
-        ]
+        playbook.append("**The market is in-between.** Beginners lose money trying to look clever on messy days. Watch, don't poke.")
         invest = [
-            "Okay to **nibble** historically strong KSE-100 names if they are not extended.",
-            "Still avoid a lump sum until price and the 50-day average are both back above the 200-day.",
+            "No lump-sum. If you ever buy, it should be after you can explain the 200-day line in your own words.",
+            "Keep studying the watchlist on both red and green days so you see both moods.",
         ]
     else:
-        playbook = [
-            "**Trend is a tailwind**, so long-horizon accumulation is allowed — still stagger buys.",
-            "**Today:** add to quality on ordinary red days; do not FOMO into already-extended names.",
-            "Rebalance only if a single name is an outsized share of your equity sleeve.",
-        ]
+        playbook.append("**The long trend looks up**, so the class is easier to enjoy — still do not rush a first purchase.")
         invest = [
-            "Historically strong KSE-100 names remain the core universe.",
-            "A green market is not permission to buy illiquid circuit-hitters.",
+            "Green markets make people feel late. That feeling is how beginners overpay.",
+            "Keep using the watchlist. A first buy, when you are ready, should be a name you have watched for weeks, not today's hero.",
         ]
     if abs(day_pct) >= 1.5:
         playbook.append(
-            f"**Wide day ({day_pct:+.2f}%).** Single-session moves this large are noise plus emotion. Sleep on any new idea."
+            f"**Big day ({day_pct:+.2f}%).** Moves this large are mostly emotion. Sleep on it. Do not open the buy ticket."
         )
     return playbook, invest
 
 
 def strong_names(histories: list[StockHistory]) -> list[StockHistory]:
-    eligible = [
-        h for h in histories
-        if h.above_200 and (h.r6m or 0) > 0 and (h.r1y or 0) > 0
-    ]
+    """Bigger, more liquid KSE-100 names with a boring-up trend — not 1-year rockets."""
+    eligible = []
+    for h in histories:
+        if not h.above_200:
+            continue
+        if (h.r6m or 0) <= 0 or (h.r1y or 0) <= 0:
+            continue
+        if (h.r1y or 0) > 80 or (h.r6m or 0) > 60:
+            continue
+        if h.volume < 100_000:
+            continue
+        if h.mcap is not None and h.mcap < 15_000:
+            continue
+        eligible.append(h)
     return sorted(eligible, key=lambda h: (h.r1y or -999, h.r6m or -999), reverse=True)
 
 
@@ -808,6 +815,121 @@ def attach_sectors(quotes: list[Quote], kse100: list[Quote], sectors: list[Secto
             member.volume = spot.volume or member.volume
     for q in quotes:
         q.sector = names.get(q.sector, q.sector)
+
+
+WATCHLIST_FILE = Path("watchlist.txt")
+SNAPSHOT_FILE = REPORTS_DIR / "snapshot.json"
+DEFAULT_WATCHLIST = ("OGDC", "PPL", "HUBC", "LUCK", "MEBL", "UBL", "ENGRO", "SYS")
+
+
+def load_watchlist() -> list[str]:
+    if not WATCHLIST_FILE.exists():
+        return list(DEFAULT_WATCHLIST)
+    symbols: list[str] = []
+    for raw in WATCHLIST_FILE.read_text(encoding="utf-8").splitlines():
+        token = raw.split("#", 1)[0].strip().upper()
+        if token and token not in symbols:
+            symbols.append(token)
+    return symbols or list(DEFAULT_WATCHLIST)
+
+
+def load_previous_snapshot() -> dict | None:
+    if not SNAPSHOT_FILE.exists():
+        return None
+    try:
+        data = json.loads(SNAPSHOT_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else None
+    except Exception:
+        return None
+
+
+def save_snapshot(d: Digest) -> None:
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "date": d.index.last[0].isoformat(),
+        "kse100": d.index.last[1],
+        "day_pct": d.day_pct,
+        "sentiment": d.sentiment_score,
+        "regime": d.regime,
+        "strong": [h.symbol for h in strong_names(d.histories)[:10]],
+    }
+    SNAPSHOT_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def describe_changes(d: Digest, prev: dict | None) -> list[str]:
+    if not prev:
+        return ["This is the first saved snapshot. From tomorrow, this box will say what changed."]
+    lines: list[str] = []
+    old_px = prev.get("kse100")
+    if isinstance(old_px, (int, float)) and old_px:
+        diff = d.index.last[1] - float(old_px)
+        lines.append(
+            f"KSE-100 vs last report: {signed(diff)} ({fmt_pct(pct(diff, float(old_px)))})."
+        )
+    old_sent = prev.get("sentiment")
+    if isinstance(old_sent, (int, float)):
+        delta = d.sentiment_score - int(old_sent)
+        if delta > 3:
+            lines.append(f"Mood score rose {delta:+d} (was {int(old_sent)}, now {d.sentiment_score}). People got a bit braver.")
+        elif delta < -3:
+            lines.append(f"Mood score fell {delta:+d} (was {int(old_sent)}, now {d.sentiment_score}). People got more worried.")
+        else:
+            lines.append(f"Mood score is almost unchanged ({d.sentiment_score} vs {int(old_sent)}).")
+    old_reg = str(prev.get("regime") or "")
+    if old_reg and old_reg != d.regime:
+        lines.append(f"Trend label changed: {old_reg} → {d.regime}.")
+    old_strong = [str(s) for s in prev.get("strong") or []]
+    now_strong = [h.symbol for h in strong_names(d.histories)[:10]]
+    added = [s for s in now_strong if s not in old_strong]
+    dropped = [s for s in old_strong if s not in now_strong]
+    if added:
+        lines.append("Newly on the 'healthier long-term' study list: " + ", ".join(f"`{s}`" for s in added) + ".")
+    if dropped:
+        lines.append("Fell off that study list: " + ", ".join(f"`{s}`" for s in dropped) + ".")
+    if len(lines) == 1:
+        lines.append("No big change in the study-list names.")
+    return lines
+
+
+def pick_lesson(d: Digest) -> str:
+    if abs(d.day_pct) >= 1.5:
+        return (
+            f"A {fmt_pct(d.day_pct)} day feels huge. For a long-term investor it is still one candle. "
+            "Notice how news headlines sound more extreme on days like this."
+        )
+    if d.ma200 is not None and d.index.last[1] < d.ma200:
+        return (
+            "The 200-day average is a slow line. When price is under it, the market has to *earn* "
+            "the right to be called an uptrend again. You can wait while it tries."
+        )
+    if d.quotes:
+        up = sum(1 for q in d.quotes if q.pct > 0)
+        down = sum(1 for q in d.quotes if q.pct < 0)
+        if down > up * 3:
+            return (
+                "Breadth: the index is one number, but most stocks went down. "
+                "That means the 'market' was weak, not just one heavyweight."
+            )
+    return (
+        "Practice naming what you see — up/down, above/below the 200-day line, scary vs hopeful news — "
+        "before you ever press buy."
+    )
+
+
+def expand_members_with_watchlist(kse100: list[Quote], quotes: list[Quote], symbols: list[str]) -> list[Quote]:
+    have = {q.symbol.upper() for q in kse100}
+    by_mw = {q.symbol.upper(): q for q in quotes}
+    extra: list[Quote] = []
+    for symbol in symbols:
+        if symbol in have:
+            continue
+        spot = by_mw.get(symbol)
+        extra.append(
+            spot
+            if spot
+            else Quote(symbol=symbol, name=symbol, sector="", listed="WATCH", current=0.0, change=0.0, pct=0.0, volume=0.0)
+        )
+    return kse100 + extra
 
 
 def index_change(series: QuoteSeries) -> tuple[str, float, float, float | None, float | None, float | None, float | None]:
@@ -853,6 +975,8 @@ def collect() -> Digest:
     except Exception as exc:  # noqa: BLE001
         print(f"Sector summary skipped: {exc}", file=sys.stderr)
     attach_sectors(quotes, kse100, sectors)
+    watch_symbols = load_watchlist()
+    members = expand_members_with_watchlist(kse100, quotes, watch_symbols)
     headlines = fetch_headlines(12)
     label, day_change, day_pct, five_pct, ma20, ma50, ma200 = index_change(index)
     last_price = index.last[1]
@@ -860,9 +984,19 @@ def collect() -> Digest:
     score, sent_label, sent_notes = score_sentiment(day_pct, last_price, ma50, ma200, quotes, headlines)
     playbook, invest_today = build_playbook(regime, day_pct, score)
     market_day = index.closes[-1][0]
-    print(f"Fetching 1-year history for {len(kse100)} KSE-100 names...", file=sys.stderr)
-    histories = fetch_histories(kse100, market_day)
-    return Digest(
+    stale_days = (datetime.now(PKT).date() - market_day).days
+    closed_note = ""
+    if stale_days >= 4:
+        closed_note = (
+            f"Last index session in the data is {market_day.isoformat()} ({stale_days} days ago). "
+            "The market may have been closed (weekend or holiday). Treat numbers as stale."
+        )
+    print(f"Fetching 1-year history for {len(members)} names...", file=sys.stderr)
+    histories = fetch_histories(members, market_day)
+    by_sym = {h.symbol.upper(): h for h in histories}
+    watchlist = [by_sym[s] for s in watch_symbols if s in by_sym]
+    previous = load_previous_snapshot()
+    digest = Digest(
         generated=datetime.now(PKT).strftime("%Y-%m-%d %H:%M PKT"),
         index=index,
         kse30=kse30,
@@ -887,7 +1021,14 @@ def collect() -> Digest:
         sentiment_detail=sent_notes,
         playbook=playbook,
         invest_today=invest_today,
+        watchlist=watchlist,
+        vs_yesterday=[],
+        lesson="",
+        closed_note=closed_note,
     )
+    digest.vs_yesterday = describe_changes(digest, previous)
+    digest.lesson = pick_lesson(digest)
+    return digest
 
 
 def md_table(headers: list[str], rows: list[list[str]]) -> str:
@@ -961,48 +1102,48 @@ def build_report(d: Digest) -> str:
     playbook = "\n".join(f"{i}. {line}" for i, line in enumerate(d.playbook, 1))
     invest = "\n".join(f"- {line}" for line in d.invest_today)
     sentiment = "\n".join(f"- {line}" for line in d.sentiment_detail)
+    changed = "\n".join(f"- {line}" for line in d.vs_yesterday)
+    closed = f"\n\n> {d.closed_note}\n" if d.closed_note else ""
     avoid = "\n".join(
-        f"- `{q.symbol}` ({q.sector or 'n/a'}) {fmt_pct(q.pct)} — not KSE-100, treat as speculation"
+        f"- `{q.symbol}` ({q.sector or 'n/a'}) {fmt_pct(q.pct)} — not in KSE-100. For a beginner this is gambling, not investing."
         for q in junk
-    ) or "- No extreme non-index circuit names stood out."
+    ) or "- No extreme non-index rocket names stood out."
     weak_s = "\n".join(
-        f"- `{h.symbol}` {h.name[:40]} · 1y {fmt_pct(h.r1y)} · still below 200-day average"
+        f"- `{h.symbol}` {h.name[:40]} · 1y {fmt_pct(h.r1y)} · still below the 200-day line"
         for h in weak_hist
     ) or "- None flagged."
+    watch_rows = hrows(d.watchlist) if d.watchlist else []
 
     kse30 = index_line(d.kse30, "KSE-30 n/a")
     allshr = index_line(d.allshr, "ALLSHR n/a")
 
-    return f"""# Daily PSX digest — {last_day.isoformat()}
+    return f"""# Daily PSX class notes — {last_day.isoformat()}
 
 **Generated:** {d.generated}  
-**Source:** {d.index.source or "PSX data portal"} · delayed public data · personal use only  
-**This is not financial advice.** Equities can lose value. One session is not a trend.
-
+**For:** someone who just opened an account and is **learning for a few weeks before buying**.  
+**Not financial advice.** You can lose money. One day is not a plan.
+{closed}
 ---
 
-## What you should do today
-
-**Regime:** {d.regime}  
-**Sentiment:** {d.sentiment_label} ({d.sentiment_score}/100)  
-**Default stance:** {d.stance}
+## If you have not bought anything yet
 
 {playbook}
 
+**Today's lesson:** {d.lesson}
+
 ---
 
-## Executive snapshot
+## In one minute
 
-| | |
+| Question | Today |
 | --- | --- |
-| KSE-100 | **{fmt(last_close)}** |
-| Day | **{d.day_label}** {signed(d.day_change)} ({fmt_pct(d.day_pct)}) |
-| 5 sessions | {fmt_pct(d.five_pct)} |
-| 20-day average | {fmt(d.ma20)} |
-| 50-day average | {fmt(d.ma50)} |
-| 200-day average | {fmt(d.ma200)} |
-| vs 200-day | {vs_200} |
-| 20-day volatility (stdev) | {vol20} pts |
+| Did the whole market go up or down? | **{d.day_label}** {fmt_pct(d.day_pct)} |
+| KSE-100 level | **{fmt(last_close)}** |
+| Above or below the 200-day line? | {vs_200} |
+| Mood (0 scared → 100 hopeful) | **{d.sentiment_label}** ({d.sentiment_score}/100) |
+| Simple stance | {d.stance} |
+
+KSE-100 is the scoreboard of Pakistan's 100 bigger companies. If it falls, most portfolios feel it.
 
 - {kse30}
 - {allshr}
@@ -1011,42 +1152,49 @@ def build_report(d: Digest) -> str:
 
 ---
 
-## Sentiment detail
+## What changed since last report
 
-{sentiment}
-
-Breadth and news can disagree with the index. If they all point the same way, the mood is more trustworthy. If they split, size down.
+{changed}
 
 ---
 
-## If you want to invest today
+## Why the mood looks like this
+
+{sentiment}
+
+If the index, the 200-day line, most stocks, *and* the news all agree, trust the mood more. If they argue, just watch.
+
+---
+
+## Your watchlist
+
+These are **study names** from `watchlist.txt` (big, commonly discussed companies). Edit that file anytime. This is not a buy list.
+
+{md_table(["Symbol", "Name", "Last", "Day", "1m", "3m", "6m", "1y", "vs 200d"], watch_rows) if watch_rows else "_Could not load watchlist prices today._"}
+
+How to read a row: **Day** = today. **1m / 6m / 1y** = last month / ~6 months / ~1 year. **vs 200d** = above (+) or below (−) the slow trend line.
+
+---
+
+## Healthier long-term KSE-100 names (study list)
+
+Filter (not magic): still above the 200-day line, up over ~6 months and ~1 year, **not** a crazy rocket (+80% in a year is excluded), and big/liquid enough for a beginner to learn on.
 
 {invest}
 
-### Historically strong KSE-100 names
-These cleared a **rules filter**, not a crystal ball: still above the 200-day average, and positive over ~6 months and ~1 year. Ranked by 1-year return.
+{md_table(["Symbol", "Name", "Last", "Day", "1m", "3m", "6m", "1y", "vs 200d"], hrows(strong))}
 
-{md_table(
-    ["Symbol", "Name", "Last", "Day", "1m", "3m", "6m", "1y", "vs 200d"],
-    hrows(strong),
-)}
+Quieter of those (not running too far ahead of the 50-day line):
 
-### Better entries vs already-extended
-Names from that list **not stretched** (>12% above the 50-day average are treated as extended):
+{md_table(["Symbol", "Name", "Last", "Day", "1m", "3m", "6m", "1y", "vs 200d"], hrows(buyable))}
 
-{md_table(
-    ["Symbol", "Name", "Last", "Day", "1m", "3m", "6m", "1y", "vs 200d"],
-    hrows(buyable),
-)}
+{"These look stretched (wait, don't chase): " + ", ".join(f"`{h.symbol}`" for h in extended) if extended else "None of the study names look wildly stretched vs the 50-day line."}
 
-{"Extended / wait for a pullback: " + ", ".join(f"`{h.symbol}`" for h in extended) if extended else "No names on the strong list look violently extended versus the 50-day average."}
-
-### Leave these alone today
-KSE-100 names **below** the 200-day average (weak 1-year first):
+Weaker KSE-100 names still **under** the 200-day line (study why, don't 'catch the falling knife'):
 
 {weak_s}
 
-Hot non-index names (easy to get trapped):
+Hot names **outside** KSE-100 (easy trap):
 
 {avoid}
 
@@ -1054,97 +1202,105 @@ Hot non-index names (easy to get trapped):
 
 ## Today's KSE-100 tape
 
-### Gainers
+Green/red today is noise. Use it to *notice* sectors, not to buy.
+
+### Up today
 {md_table(["Symbol", "Name", "Sector", "Last", "Day", "Volume"], qrows(gainers))}
 
-### Losers
+### Down today
 {md_table(["Symbol", "Name", "Sector", "Last", "Day", "Volume"], qrows(losers))}
 
-### Most active
+### Most traded
 {md_table(["Symbol", "Name", "Sector", "Last", "Day", "Volume"], qrows(active))}
 
 ---
 
-## Sector breadth
+## Sectors (groups of similar companies)
 
-Advance minus decline. Positive = more stocks up than down in that sector.
+If more stocks in a sector went up than down, that group had a better day.
 
-### Firm
-{md_table(["Sector", "Adv", "Dec", "Unch", "Turnover", "Mcap (B)"],
-    [[s.name, str(s.advance), str(s.decline), str(s.unchanged), f"{s.turnover:,.0f}", fmt(s.mcap)] for s in hot_sectors]) if hot_sectors else "_No sector has more advancers than decliners today._"}
+### Relatively firm
+{md_table(["Sector", "Up", "Down", "Flat", "Turnover", "Mcap (B)"],
+    [[s.name, str(s.advance), str(s.decline), str(s.unchanged), f"{s.turnover:,.0f}", fmt(s.mcap)] for s in hot_sectors]) if hot_sectors else "_No sector had more stocks up than down today._"}
 
 ### Soft
-{md_table(["Sector", "Adv", "Dec", "Unch", "Turnover", "Mcap (B)"],
+{md_table(["Sector", "Up", "Down", "Flat", "Turnover", "Mcap (B)"],
     [[s.name, str(s.advance), str(s.decline), str(s.unchanged), f"{s.turnover:,.0f}", fmt(s.mcap)] for s in cold_sectors])}
 
 ---
 
-## News & tone
+## News (simple tags)
 
-🟢 constructive · 🔴 cautious · ⚪ mixed. Tone is a keyword read of the headline, not a full article score.
+🟢 sounded hopeful · 🔴 sounded worried · ⚪ mixed. This is a keyword skim of the headline, not a full article.
 
 {chr(10).join(news_lines) if news_lines else "- No headlines could be fetched today."}
 
 ---
 
-## How to use this
+## Words to know
 
-1. Read **What you should do today** first. If it says wait, the tables are a watchlist, not a shopping list.
-2. Historically strong ≠ cheap. Check filings, debt, payouts, and your own time horizon.
-3. Size so a 25% drawdown on a name does not change your life.
-4. This file is delayed public data. Confirm last price with your broker before any order.
+- **KSE-100** — Pakistan's main stock index. One number for 100 larger companies.
+- **200-day average** — slow trend line. Above it ≈ long uptrend; below it ≈ long downtrend.
+- **50-day average** — faster trend line.
+- **Breadth** — how many stocks went up vs down, not just the index.
+- **Volume** — how many shares traded. Very low volume + huge % move is often a trap.
+- **Watchlist** — names you track without buying yet.
+
+## How to use these notes for a few weeks
+
+1. Read **If you have not bought anything yet** first. Do not open a buy order because a table looks green.
+2. Each day, say out loud: up or down? above or below 200-day? scared or hopeful news?
+3. Follow your watchlist like homework. After 10–15 notes you will see the same names in different moods.
+4. When you *do* start, start tiny, in a name you already understand, with money you can leave for years.
+5. Confirm the last price with your broker. This file is delayed public data.
 """
 
 
 def build_telegram_parts(d: Digest) -> list[str]:
-    last_day, last_close = d.index.last
+    last_close = d.index.last[1]
     vs_200 = "n/a" if d.ma200 is None else fmt_pct(pct(last_close - d.ma200, d.ma200))
     url = os.environ.get(
         "DIGEST_REPORT_URL",
         "https://github.com/AbuzarGhazanfarKhan/psx-daily-digest/blob/main/reports/latest.md",
     )
-    strong = strong_names(d.histories)[:8]
-    buyable = [h for h in strong if (h.vs_50 or 0) <= 12][:6]
+    strong = strong_names(d.histories)[:6]
     kse_quotes = [q for q in (d.kse100 or [q for q in d.quotes if "KSE100" in q.listed]) if not q.symbol.endswith("XD")]
-    gainers = top(kse_quotes, key=lambda q: q.pct, n=5)
-    losers = top(kse_quotes, key=lambda q: q.pct, reverse=False, n=5)
+    gainers = top(kse_quotes, key=lambda q: q.pct, n=4)
+    losers = top(kse_quotes, key=lambda q: q.pct, reverse=False, n=4)
+    closed = f"\nNote: {d.closed_note}\n" if d.closed_note else ""
 
-    def lines(items: list[StockHistory]) -> str:
-        out = []
-        for h in items:
-            out.append(
-                f"{h.symbol}  1y {fmt_pct(h.r1y)}  6m {fmt_pct(h.r6m)}  1m {fmt_pct(h.r1m)}  day {fmt_pct(h.day_pct)}"
-            )
-        return "\n".join(out) or "None passed the filter today."
+    def hist_lines(items: list[StockHistory]) -> str:
+        if not items:
+            return "(none today)"
+        return "\n".join(
+            f"{h.symbol}  day {fmt_pct(h.day_pct)}  1y {fmt_pct(h.r1y)}  vs200d {fmt_pct(h.vs_200)}"
+            for h in items
+        )
 
-    part1 = f"""PSX DAILY  {d.generated}
-NOT FINANCIAL ADVICE. You can lose money.
-
-KSE-100  {fmt(last_close)}
-Day      {d.day_label}  {signed(d.day_change)} ({fmt_pct(d.day_pct)})
-5d       {fmt_pct(d.five_pct)}
-vs 200d  {vs_200}
-
-REGIME     {d.regime}
-SENTIMENT  {d.sentiment_label}  ({d.sentiment_score}/100)
-STANCE     {d.stance}
-
-WHAT YOU SHOULD DO TODAY
-""" + "\n".join(f"{i}. {strip_md(p)}" for i, p in enumerate(d.playbook, 1))
-
-    part2 = "IF YOU WANT TO INVEST TODAY\n" + "\n".join(f"• {strip_md(p)}" for p in d.invest_today)
-    part2 += "\n\nHISTORICALLY STRONG KSE-100 (1y / 6m / 1m / day)\n" + lines(strong)
-    part2 += "\n\nBETTER ENTRIES (not stretched vs 50d)\n" + lines(buyable)
-
-    part3 = "TODAY'S KSE-100 MOVERS\nGainers:\n" + "\n".join(
-        f"▲ {q.symbol} {fmt_pct(q.pct)}" for q in gainers
+    part1 = (
+        f"PSX CLASS NOTES  {d.generated}\n"
+        f"You have not started buying. Read. Do not order.\n"
+        f"Not financial advice. You can lose money.\n"
+        f"{closed}\n"
+        f"KSE-100  {fmt(last_close)}\n"
+        f"Today    {d.day_label}  {fmt_pct(d.day_pct)}\n"
+        f"vs 200-day line  {vs_200}\n"
+        f"Mood     {d.sentiment_label}  ({d.sentiment_score}/100)\n"
+        f"Trend    {d.regime}\n\n"
+        f"TODAY'S LESSON\n{d.lesson}\n\n"
+        f"WHAT TO DO (learning weeks)\n"
+        + "\n".join(f"{i}. {strip_md(p)}" for i, p in enumerate(d.playbook, 1))
     )
-    part3 += "\nLosers:\n" + "\n".join(f"▼ {q.symbol} {fmt_pct(q.pct)}" for q in losers)
+    part2 = "WHAT CHANGED\n" + "\n".join(f"• {strip_md(x)}" for x in d.vs_yesterday)
+    part2 += "\n\nYOUR WATCHLIST (study, don't buy)\n" + hist_lines(d.watchlist)
+    part2 += "\n\nHEALTHIER LONG-TERM NAMES (study list)\n" + hist_lines(strong)
+    part3 = "KSE-100 TODAY\nUp:\n" + "\n".join(f"▲ {q.symbol} {fmt_pct(q.pct)}" for q in gainers)
+    part3 += "\nDown:\n" + "\n".join(f"▼ {q.symbol} {fmt_pct(q.pct)}" for q in losers)
     part3 += "\n\nNEWS\n"
-    for item in d.headlines[:6]:
+    for item in d.headlines[:5]:
         mark = {"positive": "+", "negative": "-", "neutral": "·"}[item.tone]
         part3 += f"{mark} {item.title}\n"
-    part3 += f"\nFull formatted report:\n{url}"
+    part3 += f"\nFull notes with tables:\n{url}"
     return [part1, part2, part3]
 
 
@@ -1193,12 +1349,14 @@ def post_webhook(text: str) -> None:
         resp.read()
 
 
-def write_reports(markdown: str) -> Path:
+def write_reports(markdown: str, digest: Digest | None = None) -> Path:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     stamped = REPORTS_DIR / f"{date.today().isoformat()}.md"
     latest = REPORTS_DIR / "latest.md"
     stamped.write_text(markdown, encoding="utf-8")
     latest.write_text(markdown, encoding="utf-8")
+    if digest is not None:
+        save_snapshot(digest)
     return stamped
 
 
@@ -1220,7 +1378,7 @@ def main() -> int:
         return 1
 
     print(report)
-    path = write_reports(report)
+    path = write_reports(report, digest)
     append_github_summary(report)
     try:
         post_telegram(build_telegram_parts(digest))

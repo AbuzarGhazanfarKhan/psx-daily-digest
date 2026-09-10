@@ -1,0 +1,12 @@
+# Learning watchlist — one PSX symbol per line.
+# These are big, commonly discussed KSE-100 names for STUDY only.
+# Not a buy list. Add or remove symbols anytime, then the next digest will follow them.
+
+OGDC    # Oil & Gas Development
+PPL     # Pakistan Petroleum
+HUBC    # Hub Power
+LUCK    # Lucky Cement
+MEBL    # Meezan Bank
+UBL     # United Bank
+ENGRO   # Engro
+SYS     # Systems Limited
