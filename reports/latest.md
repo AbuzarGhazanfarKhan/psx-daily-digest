@@ -1,6 +1,6 @@
 # Daily PSX digest — 2026-09-10
 
-**Generated:** 2026-09-10 15:59 PKT  
+**Generated:** 2026-09-10 16:25 PKT  
 **Source:** PSX data portal · delayed public data · personal use only  
 **This is not financial advice.** Equities can lose value. One session is not a trend.
 
@@ -9,7 +9,7 @@
 ## What you should do today
 
 **Regime:** MIXED / WEAK  
-**Sentiment:** FEARFUL / DEFENSIVE (22/100)  
+**Sentiment:** FEARFUL / DEFENSIVE (24/100)  
 **Default stance:** Prefer waiting or tiny staged buys over a lump sum.
 
 1. **Do not buy the dip blindly today.** The tape is defensive. Capital preservation beats hero trades.
@@ -46,7 +46,7 @@ Price is under the 200-day average. Until it reclaims that line and holds, bulls
 - KSE-100 is -1.8% below the 200-day average (longer trend is damaged).
 - The 50-day average is above the 200-day average (intermediate trend still constructive).
 - Market breadth: 58 advancers vs 405 decliners across the regular board.
-- Headline mix in this brief: 1 constructive, 3 cautious, 8 mixed.
+- Headline mix in this brief: 2 constructive, 3 cautious, 7 mixed.
 
 Breadth and news can disagree with the index. If they all point the same way, the mood is more trustworthy. If they split, size down.
 
@@ -120,10 +120,10 @@ Hot non-index names (easy to get trapped):
 | ATLH | Atlas Honda Limited | Automobile Assembler | 1,595.48 | +0.19% | 3,511 |
 | KOHC | Kohat Cement Company Limited | Cement | 92.34 | +0.13% | 568,632 |
 | IBFL | Ibrahim Fibres Limited | Synthetic & Rayon | 263.67 | +0.00% | 98 |
-| UPFLXD | Unilever Pakistan Foods Limi | Food & Personal Care P | 24,499.00 | +0.00% | 178 |
 | NESTLE | Nestle Pakistan Limited | Food & Personal Care P | 7,426.59 | -0.07% | 192 |
 | THALL | Thal Limited | Automobile Parts & Acc | 550.50 | -0.13% | 14,097 |
 | APL | Attock Petroleum Limited | Oil & Gas Marketing Co | 571.74 | -0.25% | 55,634 |
+| KAPCO | Kot Addu Power Company Limit | Power Generation & Dis | 26.47 | -0.30% | 371,930 |
 
 ### Losers
 | Symbol | Name | Sector | Last | Day | Volume |
@@ -143,11 +143,11 @@ Hot non-index names (easy to get trapped):
 | CNERGY | Cnergyico PK  Limited | Refinery | 12.37 | -5.28% | 99,405,516 |
 | KEL | K-Electric Limited | Power Generation & Dis | 6.81 | -3.13% | 28,003,900 |
 | PIBTL | Pakistan International Bulk  | Transport | 15.12 | -5.91% | 14,936,604 |
-| BOPXD | The Bank of Punjab | Commercial Banks | 31.72 | -2.79% | 14,861,736 |
 | MLCF | Maple Leaf Cement Factory Li | Cement | 94.09 | -3.62% | 9,087,463 |
 | SSGC | Sui Southern Gas Company Lim | Oil & Gas Marketing Co | 23.89 | -6.53% | 6,745,940 |
 | LOTCHEM | Lotte Chemical Pakistan Limi | Chemical | 25.56 | -2.37% | 6,456,022 |
 | FCCL | Fauji Cement Company Limited | Cement | 51.86 | -1.46% | 5,714,530 |
+| PPL | Pakistan Petroleum Limited | Oil & Gas Exploration  | 213.20 | -3.05% | 4,439,705 |
 
 ---
 
@@ -156,14 +156,7 @@ Hot non-index names (easy to get trapped):
 Advance minus decline. Positive = more stocks up than down in that sector.
 
 ### Firm
-| Sector | Adv | Dec | Unch | Turnover | Mcap (B) |
-| --- | --- | --- | --- | --- | --- |
-| Jute | 1 | 1 | 0 | 52,909 | 1.19 |
-| Apparel | 2 | 2 | 0 | 601,092 | 43.24 |
-| Synthetic & Rayon | 1 | 2 | 2 | 109,717 | 115.59 |
-| Woollen | 0 | 1 | 0 | 8,480 | 0.60 |
-| Leasing Companies | 0 | 2 | 0 | 34,352 | 1.23 |
-| Tobacco | 0 | 2 | 0 | 16,275 | 335.73 |
+_No sector has more advancers than decliners today._
 
 ### Soft
 | Sector | Adv | Dec | Unch | Turnover | Mcap (B) |
@@ -182,16 +175,16 @@ Advance minus decline. Positive = more stocks up than down in that sector.
 🟢 constructive · 🔴 cautious · ⚪ mixed. Tone is a keyword read of the headline, not a full article score.
 
 - ⚪ **Dawn Business:** [SBP to set up system to access bank transaction data](https://www.dawn.com/news/2028817/sbp-to-set-up-system-to-access-bank-transaction-data) _Thu, 10 Sep 2026 07:42:09 +0500_
-- 🔴 **Business Recorder:** [Indian rupee drops to over one-week low as oil bubbles on Middle East worries](https://www.brecorder.com/news/40438857/indian-rupee-drops-to-over-one-week-low-as-oil-bubbles-on-middle-east-worries) _Thu, 10 Sep 2026 15:49:39 +0500_
+- 🟢 **Business Recorder:** [Rupee records gain against US dollar](https://www.brecorder.com/news/40438859/intra-day-update-rupee-records-gain-against-us-dollar) _Thu, 10 Sep 2026 16:10:05 +0500_
 - 🔴 **Express Tribune:** [PSX sheds 1,486 points as ME war fears persist](https://tribune.com.pk/story/2628502/psx-sheds-1486-points-as-me-war-fears-persist) _Thu, 10 Sep 26 08:05:40 +0500_
 - 🔴 **Dawn Business:** [PSX extends losses on economic uncertainty](https://www.dawn.com/news/2028748/psx-extends-losses-on-economic-uncertainty) _Thu, 10 Sep 2026 07:47:08 +0500_
-- 🟢 **Business Recorder:** [Indian shares swing to gains after volatile closing auction; Mideast cloud lingers](https://www.brecorder.com/news/40438855/indian-shares-swing-to-gains-after-volatile-closing-auction-mideast-cloud-lingers) _Thu, 10 Sep 2026 15:46:16 +0500_
+- 🔴 **Business Recorder:** [Indian rupee drops to over one-week low as oil bubbles on Middle East worries](https://www.brecorder.com/news/40438857/indian-rupee-drops-to-over-one-week-low-as-oil-bubbles-on-middle-east-worries) _Thu, 10 Sep 2026 15:49:39 +0500_
 - ⚪ **Express Tribune:** [Gas consumers to pay extra Rs46b](https://tribune.com.pk/story/2628418/gas-consumers-to-pay-extra-rs46b) _Wed, 09 Sep 26 20:19:54 +0500_
 - ⚪ **Dawn Business:** [Railways, Asian Development Bank hold ML-1 consultation](https://www.dawn.com/news/2028471/railways-asian-development-bank-hold-ml-1-consultation) _Wed, 09 Sep 2026 07:41:24 +0500_
-- ⚪ **Business Recorder:** [PSX, LADIESFUND eye first gender-focused ETF in Pakistan](https://www.brecorder.com/news/40438853/psx-ladiesfund-eye-first-gender-focused-etf-in-pakistan) _Thu, 10 Sep 2026 15:35:40 +0500_
+- 🟢 **Business Recorder:** [Indian shares swing to gains after volatile closing auction; Mideast cloud lingers](https://www.brecorder.com/news/40438855/indian-shares-swing-to-gains-after-volatile-closing-auction-mideast-cloud-lingers) _Thu, 10 Sep 2026 15:46:16 +0500_
 - ⚪ **Express Tribune:** [PSX loses 699 points over spreading ME war](https://tribune.com.pk/story/2628421/psx-loses-699-points-over-spreading-me-war) _Wed, 09 Sep 26 20:19:54 +0500_
 - ⚪ **Dawn Business:** [Govt minimises commercial banks' role in pension payments](https://www.dawn.com/news/2028387/govt-minimises-commercial-banks-role-in-pension-payments) _Tue, 08 Sep 2026 21:22:19 +0500_
-- ⚪ **Business Recorder:** [European shares edge higher as traders await ECB decision](https://www.brecorder.com/news/40438845/european-shares-edge-higher-as-traders-await-ecb-decision) _Thu, 10 Sep 2026 13:02:44 +0500_
+- ⚪ **Business Recorder:** [PSX, LADIESFUND eye first gender-focused ETF in Pakistan](https://www.brecorder.com/news/40438853/psx-ladiesfund-eye-first-gender-focused-etf-in-pakistan) _Thu, 10 Sep 2026 15:35:40 +0500_
 - ⚪ **Express Tribune:** [PSX loses 994 points as ME conflict dents trust](https://tribune.com.pk/story/2628201/psx-loses-994-points-as-me-conflict-dents-trust) _Tue, 08 Sep 26 21:18:41 +0500_
 
 ---
