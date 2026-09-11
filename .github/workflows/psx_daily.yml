@@ -3,9 +3,11 @@ name: Daily PSX digest
 on:
   schedule:
     # Change this cron to pick a different time. GitHub cron is UTC, not Pakistan time.
-    # 11:00 AM Pakistan time (UTC+5) Sunday–Thursday = 06:00 UTC.
-    # PSX trading days are Sunday–Thursday (0-4). Friday–Saturday the market is closed.
-    - cron: "0 6 * * 0-4"
+    # 11:00 AM Pakistan time (UTC+5) Monday–Friday = 06:00 UTC.
+    # PSX trades Monday–Friday (closed Saturday–Sunday). Friday is a two-session day
+    # (morning until ~12:00, then Jumma break, afternoon until ~16:30), so 11:00 AM
+    # still falls in the first Friday session.
+    - cron: "0 6 * * 1-5"
   workflow_dispatch:
 
 jobs:

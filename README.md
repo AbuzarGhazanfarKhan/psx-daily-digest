@@ -13,9 +13,9 @@ Each trading day it:
 
 ## Schedule
 
-GitHub runs this **Sunday–Thursday at 11:00 AM Pakistan time** (PSX trading days).
+GitHub runs this **Monday–Friday at 11:00 AM Pakistan time** (PSX weekdays). Saturday and Sunday are off.
 
-To change the time, edit `.github/workflows/psx_daily.yml` — the comment sits on the line above the cron. Pakistan is UTC+5, so 11:00 AM PKT = `0 6 * * 0-4`.
+To change the time, edit `.github/workflows/psx_daily.yml` — the comment sits on the line above the cron. Pakistan is UTC+5, so 11:00 AM PKT = `0 6 * * 1-5`. Friday is a two-session day; 11:00 AM is still the morning session.
 
 ## Watchlist
 
