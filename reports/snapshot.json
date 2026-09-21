@@ -1,19 +1,19 @@
 {
-  "date": "2026-09-18",
-  "kse100": 170738.55,
-  "day_pct": 1.002915290465109,
-  "sentiment": 76,
+  "date": "2026-09-21",
+  "kse100": 171153.16,
+  "day_pct": 0.15717041291848352,
+  "sentiment": 42,
   "regime": "MIXED (below the long average)",
   "strong": [
     "ATRL",
     "JVDC",
     "MEBL",
-    "GHNI",
+    "ILP",
     "AKBL",
     "PSX",
     "DCR",
-    "ILP",
+    "FABL",
     "OGDC",
-    "MTL"
+    "POL"
   ]
 }
